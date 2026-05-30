@@ -9,8 +9,8 @@
         <button type="button" class="learn-sidebar-close" id="learnCloseLeft" aria-label="Закрыть меню">×</button>
         <a class="brand-mini" href="{{ url_for('home') }}" title="Мир алгоритмов: проектируем на Python">Мир алгоритмов: проектируем на Python</a>
         <nav class="side-nav" aria-label="Разделы">
-            <a class="side-nav__link side-nav__link--active" href="{{ url_for('home') }}">Модули</a>
-            <a class="side-nav__link" href="{{ url_for('learn') }}">Задания</a>
+            <a class="side-nav__link" href="{{ url_for('home') }}">Главная</a>
+            <a class="side-nav__link side-nav__link--active" href="{{ url_for('learn') }}">Задания</a>
             <span class="side-nav__link side-nav__link--muted">Профиль</span>
         </nav>
 
@@ -73,33 +73,39 @@
                 </div>
                 <p class="level-xp-line" data-xp-sub>{{ level_info.xp_in_level }} / {{ level_info.xp_to_next }} XP до след. уровня</p>
             </div>
-        </div>
-
-        <div class="card card--soft">
-            <h3 class="card__title">Модули</h3>
-            <div class="module-list">
-                {% for module in modules_stats %}
-                <div class="module-row {% if module.is_locked %}module-row--locked{% endif %}"
-                    data-module-id="{{ module.id }}" {% if not module.is_locked %}onclick="window.location.href='/load_module/{{ module.id }}'"
-                    role="button" tabindex="0" {% endif %}>
-                    <div class="module-row__title">{{ module.icon }} {{ module.title }}</div>
-                    <div class="module-progress module-progress--inline">
-                        <div class="duo-progress small">
-                            <div class="duo-progress__fill" style="width: {{ module.progress }}%"></div>
-                        </div>
-                        <span>{{ module.progress }}%</span>
-                    </div>
-                    {% if module.is_locked %}
-                    <div class="module-row__lock">Завершите предыдущий модуль</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
+            <div class="level-card__motivation">
+                <h3 class="card__title card__title--compact">Повышай уровень!</h3>
+                <p class="card__muted">Выполняйте задания и набирайте XP.</p>
             </div>
         </div>
 
-        <div class="footer-mini">
-            <a href="{{ url_for('home') }}">Главная</a>
+        {% if project_meta %}
+        <div class="card card--soft" id="projectProgressCard">
+            <h3 class="card__title">🍽️ {{ project_meta.name }} — прогресс</h3>
+            <p class="card__muted project-progress__version">Версия <span data-project-version>{{ project_meta.version_display }}</span></p>
+            <div class="project-progress__meter" role="progressbar"
+                aria-valuenow="{{ project_meta.stages_done_count }}"
+                aria-valuemin="0"
+                aria-valuemax="{{ project_meta.stages_total }}">
+                <div class="project-progress__meter-fill" data-project-bar
+                    style="width: {{ (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 }}%"></div>
+            </div>
+            <p class="project-progress__summary" data-project-summary>
+                {{ project_meta.stages_done_count }} / {{ project_meta.stages_total }} этапов
+            </p>
+            <ul class="project-checklist" data-project-checklist aria-label="Этапы развития проекта">
+                {% for step in project_meta.checklist %}
+                <li class="project-checklist__item project-checklist__item--{{ step.status }}" data-stage="{{ step.num }}">
+                    <div class="project-checklist__head">
+                        <span class="project-checklist__mark" aria-hidden="true">{% if step.status == 'done' %}✓{% elif step.status == 'current' %}→{% else %}✗{% endif %}</span>
+                        <span class="project-checklist__title">{{ step.version_label }} {{ step.feature }}</span>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
+        {% endif %}
     </aside>
 </div>
+<script defer src="{{ url_for('static', filename='js/learn.js') }}"></script>
 {% endblock %}

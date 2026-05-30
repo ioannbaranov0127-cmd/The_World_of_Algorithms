@@ -8,6 +8,7 @@ from flask import Flask, jsonify, redirect, render_template, request, send_from_
 from code_runner import run_python
 from code_runner.interactive_session import InteractiveSession
 from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
+from course_data.project_state import build_project_meta
 from course_data import (
     ACHIEVEMENTS,
     LESSONS,
@@ -17,6 +18,8 @@ from course_data import (
     task_client_payload,
     topic_by_task_id,
     validate_interactive_answer,
+    validate_project_tests,
+    stdout_matches,
 )
 
 app = Flask(__name__, static_folder='CSS', template_folder='HTML')
@@ -40,6 +43,7 @@ class UserProgress:
         self.total_xp = 0
         self.current_module = 1
         self.current_task_index = 0
+        self.project_code: dict[int, str] = {}
 
     def complete_task(self, task_id, xp):
         if task_id not in self.completed_tasks:
@@ -231,6 +235,7 @@ def learn():
                 total_tasks=TOTAL_TASKS_COUNT,
                 completed_tasks=len(progress.completed_tasks),
                 level_info=lm,
+                project_meta=build_project_meta(progress, current_module),
             )
         if current_task_index >= len(tasks):
             current_task_index = max(0, len(tasks) - 1)
@@ -254,6 +259,7 @@ def learn():
             total_tasks=TOTAL_TASKS_COUNT,
             completed_tasks=len(progress.completed_tasks),
             level_info=lm,
+            project_meta=build_project_meta(progress, current_module),
         )
 
     if current_task_index >= len(tasks):
@@ -271,6 +277,10 @@ def learn():
 
     task_done = current_task['id'] in progress.completed_tasks
     lm = level_meta(progress.total_xp)
+    project_meta = build_project_meta(progress, current_module)
+    saved_project = progress.project_code.get(current_module, '')
+    is_project_stage = current_task.get('kind') == 'project_stage'
+    project_spec = current_task.get('project_spec') if is_project_stage else None
 
     return render_template(
         'learn.html',
@@ -293,6 +303,10 @@ def learn():
         safe_task=task_client_payload(current_task),
         topics=topics,
         default_code_placeholder=DEFAULT_CODE_EDITOR_PLACEHOLDER,
+        project_meta=project_meta,
+        project_code=saved_project,
+        is_project_stage=is_project_stage,
+        project_spec=project_spec,
     )
 
 
@@ -451,7 +465,7 @@ def check_code():
         return jsonify({'error': 'Задание не найдено'}), 400
 
     if task.get('type', 'code') != 'code':
-        return jsonify({'error': 'Это задание проверяется без запуска кода.'}), 400
+        return jsonify({'error': 'Для этого задания используйте кнопку «Проверить» под блоком задания, а не проверку кода.'}), 400
 
     expected = task['expected']
 
@@ -470,13 +484,17 @@ def check_code():
     run_fields = {**result.to_api_dict(duration_ms=duration_ms)}
 
     is_correct = False
+    test_failures: list[str] = []
     if error_short is None:
-        output_lines = [line.strip() for line in output.split('\n') if line.strip()]
-        expected_lines = [line.strip() for line in expected.split('\n') if line.strip()]
-        is_correct = output_lines == expected_lines
+        is_correct = stdout_matches(output, expected)
+        if is_correct and task.get('kind') == 'project_stage':
+            ok_tests, test_failures = validate_project_tests(code, task.get('project_tests'))
+            is_correct = ok_tests
 
     if is_correct:
         progress.complete_task(task_id, task['xp'])
+        if task.get('kind') == 'project_stage':
+            progress.project_code[progress.current_module] = code
         current_module = progress.current_module
         module_completed = progress.is_module_completed(current_module)
         keys = sorted(LESSONS.keys())
@@ -493,17 +511,23 @@ def check_code():
             'module_completed': module_completed,
             'next_module': next_mid,
             'level': level_meta(progress.total_xp),
+            'project_meta': build_project_meta(progress, progress.current_module),
+            'project_code_saved': task.get('kind') == 'project_stage',
             **run_fields,
         })
 
-    return jsonify({
+    payload = {
         'success': False,
         'output': output if output else '(пусто)',
         'expected': expected,
         'error': error_short,
         'error_detail': error_detail,
         **run_fields,
-    })
+    }
+    if test_failures:
+        payload['test_failures'] = test_failures
+        payload['error'] = test_failures[0]
+    return jsonify(payload)
 
 
 @app.route('/check_task', methods=['POST'])
@@ -537,14 +561,17 @@ def check_task():
             i = keys.index(current_module)
             if i + 1 < len(keys):
                 next_mid = keys[i + 1]
-        return jsonify({
+        payload = {
             'success': True,
             'xp_gained': task['xp'],
             'total_xp': progress.total_xp,
             'module_completed': module_completed,
             'next_module': next_mid,
             'level': level_meta(progress.total_xp),
-        })
+        }
+        if task.get('kind') == 'project_stage':
+            payload['project_meta'] = build_project_meta(progress, progress.current_module)
+        return jsonify(payload)
 
     return jsonify({
         'success': False,
@@ -717,6 +744,7 @@ def api_session():
         'module_progress': progress.get_module_progress(progress.current_module),
         'current_module': progress.current_module,
         'level': level_meta(progress.total_xp),
+        'project_meta': build_project_meta(progress, progress.current_module),
     }
     if task_id is not None:
         payload['task_completed'] = task_id in progress.completed_tasks

@@ -178,6 +178,89 @@
         return 'code_task_' + cfg.currentTaskId;
     }
 
+    function projectCodeStorageKey() {
+        return 'project_code_m' + cfg.currentModule;
+    }
+
+    function saveProjectCodeToStorage(code) {
+        try {
+            localStorage.setItem(projectCodeStorageKey(), code != null ? String(code) : '');
+        } catch (e) {}
+    }
+
+    function getProjectCodeFromStorage() {
+        try {
+            return localStorage.getItem(projectCodeStorageKey());
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function renderProjectChecklistItem(item) {
+        var li = document.createElement('li');
+        li.className = 'project-checklist__item project-checklist__item--' + (item.status || 'pending');
+        li.setAttribute('data-stage', String(item.num));
+
+        var row = document.createElement('div');
+        row.className = 'project-checklist__head';
+
+        var mark = document.createElement('span');
+        mark.className = 'project-checklist__mark';
+        mark.setAttribute('aria-hidden', 'true');
+        if (item.status === 'done') mark.textContent = '✓';
+        else if (item.status === 'current') mark.textContent = '→';
+        else mark.textContent = '✗';
+
+        var title = document.createElement('span');
+        title.className = 'project-checklist__title';
+        title.textContent =
+            (item.version_label || item.version || '') + ' ' + (item.feature || 'Шаг ' + item.num);
+
+        row.appendChild(mark);
+        row.appendChild(title);
+        li.appendChild(row);
+        return li;
+    }
+
+    function applyProjectMeta(meta) {
+        if (!meta) return;
+        var ver = document.querySelector('[data-project-version]');
+        if (ver) ver.textContent = meta.version_display || meta.version || '0.0';
+
+        var summary = document.querySelector('[data-project-summary]');
+        if (summary && meta.stages_total != null) {
+            summary.textContent =
+                (meta.stages_done_count || 0) + ' / ' + meta.stages_total + ' этапов';
+        }
+
+        var bar = document.querySelector('[data-project-bar]');
+        if (bar && meta.stages_total) {
+            var pct = Math.round(((meta.stages_done_count || 0) / meta.stages_total) * 100);
+            bar.style.width = pct + '%';
+        }
+
+        var meter = document.querySelector('.project-progress__meter');
+        if (meter && meta.stages_total != null) {
+            meter.setAttribute('aria-valuenow', String(meta.stages_done_count || 0));
+            meter.setAttribute('aria-valuemax', String(meta.stages_total));
+        }
+
+        var list = document.querySelector('[data-project-checklist]');
+        if (list && meta.checklist && meta.checklist.length) {
+            list.innerHTML = '';
+            for (var i = 0; i < meta.checklist.length; i++) {
+                list.appendChild(renderProjectChecklistItem(meta.checklist[i]));
+            }
+            var cur = list.querySelector('.project-checklist__item--current');
+            if (cur) {
+                cur.classList.add('project-checklist__item--pulse');
+                setTimeout(function () {
+                    cur.classList.remove('project-checklist__item--pulse');
+                }, 1400);
+            }
+        }
+    }
+
     function scheduleSaveCode() {
         clearTimeout(saveDebounceTimer);
         saveDebounceTimer = setTimeout(saveCodeToStorage, 280);
@@ -243,16 +326,7 @@
         if (pp) pp.textContent = d.module_progress + '%';
         if (pf) pf.style.width = d.module_progress + '%';
         if (d.level) applyLevelUi(d.level);
-        var items = document.querySelectorAll('.module-row[data-module-id]');
-        for (var i = 0; i < items.length; i++) {
-            var mid = parseInt(items[i].getAttribute('data-module-id'), 10);
-            if (mid === d.current_module) {
-                var sp = items[i].querySelector('.module-progress span');
-                var bar = items[i].querySelector('.duo-progress__fill');
-                if (sp) sp.textContent = d.module_progress + '%';
-                if (bar) bar.style.width = d.module_progress + '%';
-            }
-        }
+        if (d.project_meta) applyProjectMeta(d.project_meta);
     }
 
     function fetchSession() {
@@ -1046,6 +1120,12 @@
                         showNotification('Отлично! +' + data.xp_gained + ' XP', 'success');
                         saveCodeToStorage();
                         fetchSession();
+                        if (data.project_code_saved) {
+                            saveProjectCodeToStorage(getCodeValue());
+                        }
+                        if (data.project_meta) {
+                            applyProjectMeta(data.project_meta);
+                        }
                         if (data.module_completed) {
                             showNotification('Модуль завершён', 'success');
                             setTimeout(function () {
@@ -1069,6 +1149,9 @@
                 } else {
                     var wrong =
                         'Пока не совпало с эталоном · сравните вывод ниже и попробуйте снова.';
+                    if (data.test_failures && data.test_failures.length) {
+                        wrong = data.test_failures.join(' · ');
+                    }
                     renderCheckConsole(data, 'run-console__verdict--fail', wrong);
                     showNotification('Попробуйте ещё раз', 'error');
                     saveCodeToStorage();
@@ -1104,6 +1187,160 @@
             return ans;
         }
         return null;
+    }
+
+    function cleanupOrderingDragArtifacts() {
+        document.body.classList.remove('ordering-drag-active');
+        var stuck = document.querySelectorAll('body > .ordering-list__item');
+        for (var i = 0; i < stuck.length; i++) stuck[i].remove();
+    }
+
+    function setupOrderingListDrag(list) {
+        if (!list) return;
+        cleanupOrderingDragArtifacts();
+
+        var drag = null;
+
+        function getItems() {
+            return Array.prototype.slice.call(list.querySelectorAll('.ordering-list__item'));
+        }
+
+        function clearDropMarks() {
+            var rows = list.querySelectorAll(
+                '.ordering-list__item--drop-before, .ordering-list__item--drop-after'
+            );
+            for (var i = 0; i < rows.length; i++) {
+                rows[i].classList.remove(
+                    'ordering-list__item--drop-before',
+                    'ordering-list__item--drop-after'
+                );
+            }
+        }
+
+        function insertIndexForY(y, dragged) {
+            var items = getItems();
+            for (var i = 0; i < items.length; i++) {
+                if (items[i] === dragged) continue;
+                var rect = items[i].getBoundingClientRect();
+                if (y < rect.top + rect.height / 2) return i;
+            }
+            return items.length;
+        }
+
+        function moveItemToIndex(item, insertIndex) {
+            var items = getItems();
+            var cur = items.indexOf(item);
+            if (cur < 0) return;
+            if (insertIndex === cur || insertIndex === cur + 1) return;
+            var ref = insertIndex >= items.length ? null : items[insertIndex];
+            list.insertBefore(item, ref);
+        }
+
+        function showDropMark(insertIndex) {
+            clearDropMarks();
+            var items = getItems();
+            if (!items.length) return;
+            if (insertIndex >= items.length) {
+                items[items.length - 1].classList.add('ordering-list__item--drop-after');
+                return;
+            }
+            if (items[insertIndex]) items[insertIndex].classList.add('ordering-list__item--drop-before');
+        }
+
+        function endDrag() {
+            if (!drag) return;
+            drag.item.classList.remove('ordering-list__item--dragging');
+            clearDropMarks();
+            document.body.classList.remove('ordering-drag-active');
+            document.removeEventListener('pointermove', onPointerMove);
+            document.removeEventListener('pointerup', onPointerUp);
+            document.removeEventListener('pointercancel', onPointerUp);
+            try {
+                if (drag.handle && drag.handle.releasePointerCapture) {
+                    drag.handle.releasePointerCapture(drag.pointerId);
+                }
+            } catch (err) {}
+            drag = null;
+        }
+
+        function onPointerMove(e) {
+            if (!drag || e.pointerId !== drag.pointerId) return;
+
+            if (!drag.active) {
+                if (Math.abs(e.clientY - drag.startY) < 8) return;
+                drag.active = true;
+                drag.item.classList.add('ordering-list__item--dragging');
+                document.body.classList.add('ordering-drag-active');
+            }
+
+            e.preventDefault();
+            var idx = insertIndexForY(e.clientY, drag.item);
+            if (idx !== drag.lastIndex) {
+                moveItemToIndex(drag.item, idx);
+                drag.lastIndex = idx;
+            }
+            showDropMark(idx);
+        }
+
+        function onPointerUp(e) {
+            if (!drag || e.pointerId !== drag.pointerId) return;
+            endDrag();
+        }
+
+        function bindMoveButtons() {
+            var upBtns = list.querySelectorAll('[data-order-up]');
+            for (var u = 0; u < upBtns.length; u++) {
+                upBtns[u].addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var row = e.currentTarget.closest('.ordering-list__item');
+                    if (!row) return;
+                    var prev = row.previousElementSibling;
+                    if (prev) list.insertBefore(row, prev);
+                });
+            }
+            var downBtns = list.querySelectorAll('[data-order-down]');
+            for (var d = 0; d < downBtns.length; d++) {
+                downBtns[d].addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var row = e.currentTarget.closest('.ordering-list__item');
+                    if (!row) return;
+                    var next = row.nextElementSibling;
+                    if (next) list.insertBefore(next, row);
+                });
+            }
+        }
+
+        var handles = list.querySelectorAll('.ordering-list__handle');
+        for (var h = 0; h < handles.length; h++) {
+            (function (handle) {
+                handle.addEventListener('pointerdown', function (e) {
+                    if (e.pointerType === 'mouse' && e.button !== 0) return;
+                    if (drag) return;
+                    var item = handle.closest('.ordering-list__item');
+                    if (!item || !list.contains(item)) return;
+
+                    e.preventDefault();
+                    drag = {
+                        item: item,
+                        handle: handle,
+                        pointerId: e.pointerId,
+                        startY: e.clientY,
+                        lastIndex: getItems().indexOf(item),
+                        active: false,
+                    };
+
+                    try {
+                        handle.setPointerCapture(e.pointerId);
+                    } catch (err) {}
+
+                    document.addEventListener('pointermove', onPointerMove, { passive: false });
+                    document.addEventListener('pointerup', onPointerUp);
+                    document.addEventListener('pointercancel', onPointerUp);
+                });
+            })(handles[h]);
+        }
+
+        bindMoveButtons();
     }
 
     function mountInteractiveTask() {
@@ -1144,36 +1381,34 @@
             var ol = el('ol', 'ordering-list');
             for (var j = 0; j < safe.items.length; j++) {
                 var li = el('li', 'ordering-list__item');
+                var handle = el('span', 'ordering-list__handle');
+                handle.setAttribute('role', 'button');
+                handle.setAttribute('aria-label', 'Перетащите для смены порядка');
+                handle.title = 'Перетащите для смены порядка';
                 var txt = el('span', 'ordering-list__text', safe.items[j]);
                 var up = el('button', 'btn btn-ghost ordering-btn', '↑');
                 up.type = 'button';
+                up.setAttribute('data-order-up', '1');
+                up.setAttribute('aria-label', 'Выше');
                 var dn = el('button', 'btn btn-ghost ordering-btn', '↓');
                 dn.type = 'button';
+                dn.setAttribute('data-order-down', '1');
+                dn.setAttribute('aria-label', 'Ниже');
+                li.appendChild(handle);
                 li.appendChild(txt);
                 li.appendChild(up);
                 li.appendChild(dn);
                 ol.appendChild(li);
-                up.addEventListener(
-                    'click',
-                    function (row) {
-                        return function () {
-                            var prev = row.previousElementSibling;
-                            if (prev) ol.insertBefore(row, prev);
-                        };
-                    }(li)
-                );
-                dn.addEventListener(
-                    'click',
-                    function (row) {
-                        return function () {
-                            var nx = row.nextElementSibling;
-                            if (nx) ol.insertBefore(nx, row);
-                        };
-                    }(li)
-                );
             }
+            setupOrderingListDrag(ol);
             body.appendChild(ol);
-            body.appendChild(el('p', 'interactive-task__hint', 'Расставьте шаги кнопками ↑ ↓'));
+            body.appendChild(
+                el(
+                    'p',
+                    'interactive-task__hint',
+                    'Перетащите за ручку слева или нажимайте ↑ ↓. Сверху — самый первый шаг.'
+                )
+            );
         } else if (safe.type === 'matching') {
             var tbl = el('div', 'matching-grid');
             for (var k = 0; k < safe.left.length; k++) {
@@ -1248,10 +1483,13 @@
                         showNotification('Отлично! +' + data.xp_gained + ' XP', 'success');
                         fetchSession();
                         applyLevelUi(data.level);
+                        if (data.project_meta) applyProjectMeta(data.project_meta);
                         var xpSide = document.querySelector('[data-total-xp]');
                         if (xpSide) xpSide.textContent = String(data.total_xp);
                         setTimeout(function () {
-                            location.reload();
+                            refreshLearnTaskInPlace().catch(function () {
+                                location.reload();
+                            });
                         }, 700);
                     } else {
                         showNotification(data.message || 'Попробуйте ещё раз', 'error');
@@ -1323,13 +1561,51 @@
         });
     }
 
+    function confirmClearEditor() {
+        if (cfg.isProjectStage) {
+            return window.confirm(
+                'Очистить редактор проекта?\n\n' +
+                    'Код main.py будет сброшен до шаблона. Сохранённый код проекта ' +
+                    'исчезнет — в следующих темах его не подставят автоматически.\n\n' +
+                    'Нажмите «ОК», только если вы уверены.'
+            );
+        }
+        return window.confirm(
+            'Очистить редактор?\n\n' +
+                'Текущий код в этом задании будет удалён.\n' +
+                'Если передумали — нажмите «Отмена».'
+        );
+    }
+
+    function bindClearEditorButton() {
+        var clearBtn = document.getElementById('clearCodeBtn');
+        if (!clearBtn) return;
+        var btn = clearBtn.cloneNode(true);
+        clearBtn.parentNode.replaceChild(btn, clearBtn);
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (!confirmClearEditor()) return;
+            clearCode();
+        });
+    }
+
     function clearCode() {
         clearTimeout(saveDebounceTimer);
         abortInteractive(true);
         localStorage.removeItem(codeStorageKey());
-        setCodeValue(cfg.editorTemplate, true);
+        var resetTo = cfg.editorTemplate;
+        if (cfg.isProjectStage) {
+            localStorage.removeItem(projectCodeStorageKey());
+            resetTo = cfg.editorStarter || cfg.editorTemplate;
+        }
+        setCodeValue(resetTo, true);
+        saveCodeToStorage();
+        if (cfg.isProjectStage) {
+            saveProjectCodeToStorage(resetTo);
+        }
         lastStdinForCheck = '';
         renderIdleConsole();
+        armPlaceholderStripOnce();
         showNotification('Редактор очищен', 'info');
     }
 
@@ -1345,22 +1621,10 @@
         return t === '# Напишите код здесь. . .' || t === '# Напишите код здесь...';
     }
 
-    function setupCodeEditor() {
-        var mount = document.getElementById('codeEditorMount');
-        if (!mount || !window.LearnCodeEditor || !window.LearnCodeEditor.create) return;
-
-        window.LearnCodeEditor.destroy();
-        var saved = localStorage.getItem(codeStorageKey());
-        var initial = saved !== null && saved !== '' ? saved : cfg.editorTemplate;
-        var shouldArmPlaceholderStrip =
-            isPlaceholderContent(cfg.editorTemplate) && isPlaceholderContent(initial);
-
-        window.LearnCodeEditor.create(mount, {
-            initial: initial,
-            onChange: scheduleSaveCode,
-        });
-
-        if (!shouldArmPlaceholderStrip) return;
+    /** Один раз при первом клике по редактору или консоли убрать шаблон-подсказку. */
+    function armPlaceholderStripOnce() {
+        if (!isPlaceholderContent(cfg.editorTemplate)) return;
+        if (!isPlaceholderContent(getCodeValue())) return;
 
         var stripDone = false;
         function tryStripPlaceholderOnce() {
@@ -1381,8 +1645,38 @@
         }
     }
 
+    function setupCodeEditor() {
+        var mount = document.getElementById('codeEditorMount');
+        if (!mount || !window.LearnCodeEditor || !window.LearnCodeEditor.create) return;
+
+        window.LearnCodeEditor.destroy();
+        var saved = localStorage.getItem(codeStorageKey());
+        var projectSaved = getProjectCodeFromStorage();
+        var initial = cfg.editorTemplate;
+        if (cfg.isProjectStage) {
+            if (projectSaved !== null && projectSaved !== '') {
+                initial = projectSaved;
+            } else if (cfg.projectCodeServer) {
+                initial = cfg.projectCodeServer;
+            }
+        } else if (saved !== null && saved !== '') {
+            initial = saved;
+        }
+
+        window.LearnCodeEditor.create(mount, {
+            initial: initial,
+            onChange: scheduleSaveCode,
+        });
+
+        armPlaceholderStripOnce();
+    }
+
     function bindLearnTaskUi() {
         var tt = cfg.taskType || 'code';
+
+        if (tt === 'code') {
+            bindClearEditorButton();
+        }
 
         var hintBtn = document.getElementById('hintBtn');
         if (hintBtn) {
@@ -1439,20 +1733,6 @@
                 checkCode();
             });
         }
-        var clearBtn = document.getElementById('clearCodeBtn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                if (
-                    !window.confirm(
-                        'Очистить редактор? Текущий код в этом задании будет удалён. Если вы передумали, нажмите «Отмена».'
-                    )
-                ) {
-                    return;
-                }
-                clearCode();
-            });
-        }
 
         if (cfg.taskDone) {
             var box = getConsoleBox();
@@ -1470,6 +1750,8 @@
     }
 
     function init() {
+        initLearnNavigationScroll();
+
         var elCfg = document.getElementById('learn-config');
         if (!elCfg) return;
         try {
@@ -1478,7 +1760,7 @@
             return;
         }
 
-        initLearnNavigationScroll();
+        if (cfg.projectMeta) applyProjectMeta(cfg.projectMeta);
 
         window.nextTask = nextTask;
         window.previousTask = previousTask;

@@ -21,7 +21,9 @@ _KIND_TO_TYPE: dict[str, str] = {
     'matching': 'matching',
     'fill_gaps': 'fill_gaps',
     'project_step': 'code',
+    'project_stage': 'code',
     'practice': 'code',
+    'warmup': 'code',
     'trainer': 'quiz',
 }
 
