@@ -711,6 +711,19 @@ a.side-nav__link:hover {
     margin-bottom: 16px;
 }
 
+.task-nav .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.task-nav__arrow {
+    font-size: 1.1em;
+    line-height: 1;
+    opacity: 0.92;
+    font-weight: 600;
+}
+
 .result-panel {
     padding: 14px 16px;
     background: #f8f9fb;
@@ -742,7 +755,7 @@ a.side-nav__link:hover {
     border-radius: 10px;
     border: 1px solid var(--border);
     background: #fff;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto;
     scroll-behavior: smooth;
     min-height: 120px;
@@ -778,8 +791,9 @@ a.side-nav__link:hover {
 .edu-console__out {
     margin: 0;
     padding: 0 14px;
-    white-space: pre-wrap;
-    word-break: break-word;
+    white-space: pre;
+    overflow-wrap: normal;
+    word-break: normal;
     color: #24292f;
     animation: eduLineIn 0.28s ease forwards;
 }
@@ -959,8 +973,9 @@ a.side-nav__link:hover {
     font-family: var(--mono);
     font-size: 13px;
     line-height: 1.5;
-    white-space: pre-wrap;
-    word-break: break-word;
+    white-space: pre;
+    overflow-wrap: normal;
+    word-break: normal;
     color: #24292f;
 }
 

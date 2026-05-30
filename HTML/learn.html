@@ -18,7 +18,8 @@
     } catch (e) {}
 })();
 </script>
-{% set editor_seed = (current_task.starter_code or '# Напишите код здесь...\n') %}
+{% set _sc = current_task.get('starter_code', '') %}
+{% set editor_seed = _sc|trim if _sc|trim else default_code_placeholder %}
 {% set task_kind = current_task.get('type', 'code') %}
 <script type="application/json" id="learn-config">{{ {
   'currentModule': current_module_num,
@@ -201,14 +202,14 @@
                 <div class="code-workbench__actions">
                     <button type="button" class="btn btn-secondary" id="runCodeBtn">▶ Выполнить</button>
                     <button type="button" class="btn btn-ghost" id="stopRunBtn" style="display:none">Остановить</button>
-                    <button type="button" class="btn btn-accent" id="checkCodeBtn">Проверить</button>
                     <button type="button" class="btn btn-ghost" id="clearCodeBtn">Очистить редактор</button>
+                    <button type="button" class="btn btn-accent" id="checkCodeBtn">Проверить</button>
                 </div>
             </div>
 
             <div class="task-nav">
-                <button type="button" class="btn btn-secondary" id="prevTaskBtn" {% if current_module_num==1 and current_task_index==0 %}disabled{% endif %}>Назад</button>
-                <button type="button" class="btn btn-primary" id="nextTaskNavBtn">Далее</button>
+                <button type="button" class="btn btn-secondary" id="prevTaskBtn" {% if current_module_num==1 and current_task_index==0 %}disabled{% endif %}><span class="task-nav__arrow" aria-hidden="true">←</span> Назад</button>
+                <button type="button" class="btn btn-primary" id="nextTaskNavBtn">Далее <span class="task-nav__arrow" aria-hidden="true">→</span></button>
             </div>
 
             <section class="result-panel edu-console-panel {% if task_kind != 'code' %}is-hidden{% endif %}" id="result" aria-live="polite">

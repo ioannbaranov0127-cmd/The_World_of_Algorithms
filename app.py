@@ -7,6 +7,7 @@ from flask import Flask, jsonify, redirect, render_template, request, send_from_
 
 from code_runner import run_python
 from code_runner.interactive_session import InteractiveSession
+from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
 from course_data import (
     ACHIEVEMENTS,
     LESSONS,
@@ -291,6 +292,7 @@ def learn():
         level_info=lm,
         safe_task=task_client_payload(current_task),
         topics=topics,
+        default_code_placeholder=DEFAULT_CODE_EDITOR_PLACEHOLDER,
     )
 
 

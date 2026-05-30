@@ -14,3 +14,6 @@ MODULE_IDS: list[int] = [1, 2]
 INCLUDE_DRAFT_TOPICS: bool = False
 
 XP_PER_LEVEL = 50
+
+# Пустой редактор: подсказка и одноразовая очистка при первом клике (learn.js)
+DEFAULT_CODE_EDITOR_PLACEHOLDER = '# Напишите код здесь. . .\n'

@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
@@ -35,7 +36,7 @@ TOPIC: dict = {
             'hint': 'Подсказка.',
             'xp': 10,
             'expected': 'ожидаемый вывод',
-            'starter_code': '',
+            'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
         },
     ],
 }

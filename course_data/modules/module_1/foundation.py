@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
+
 # --- Модуль 1: темы 1–5 ---
 
 _M1_TOPIC1_THEORY = {
@@ -509,7 +511,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'Два вызова print — две строки в консоли.',
                     'xp': 12,
                     'expected': 'Мой проект: калькулятор калорий\nЯ запускаю Python!',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
             ],
         },
@@ -527,7 +529,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'print("...")',
                     'xp': 12,
                     'expected': 'Привет! Это мой первый вывод в Python.',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 11,
@@ -536,7 +538,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'Один print.',
                     'xp': 12,
                     'expected': 'Добро пожаловать в калькулятор калорий!',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 12,
@@ -545,7 +547,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'Два print или один — главное, чтобы вывод совпал построчно.',
                     'xp': 12,
                     'expected': '10\n20',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 13,
@@ -554,7 +556,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'Три команды print.',
                     'xp': 14,
                     'expected': 'Завтрак\nОбед\nУжин',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
             ],
         },
@@ -589,7 +591,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'Три print подряд.',
                     'xp': 14,
                     'expected': '=== Калькулятор калорий ===\nДень 1\nУчимся выводить текст',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 16,
@@ -598,7 +600,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'В Python: print("*" * 10)',
                     'xp': 15,
                     'expected': '**********',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 17,
@@ -620,7 +622,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'Умножение строки на число.',
                     'xp': 15,
                     'expected': 'PythonPythonPython',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
             ],
         },
@@ -638,7 +640,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'breakfast = 300\nprint(breakfast)',
                     'xp': 14,
                     'expected': '300',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 20,
@@ -647,7 +649,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'print(breakfast + lunch)',
                     'xp': 16,
                     'expected': '650',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 21,
@@ -656,7 +658,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'name = "Яблоко"',
                     'xp': 14,
                     'expected': 'Яблоко',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 22,
@@ -665,7 +667,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'total = 1800',
                     'xp': 16,
                     'expected': '1800',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
                 {
                     'id': 23,
@@ -674,7 +676,7 @@ def _tasks_module1() -> list[dict]:
                     'hint': 'print("Итого за два приёма:", 300 + 500)',
                     'xp': 18,
                     'expected': 'Итого за два приёма: 800',
-                    'starter_code': '',
+                    'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
                 },
             ],
         },

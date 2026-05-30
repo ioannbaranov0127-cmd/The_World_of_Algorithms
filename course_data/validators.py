@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
+
 
 def topic_by_task_id(module_id: int, task_id: int) -> dict | None:
     from course_data.loader import LESSONS
@@ -26,7 +28,11 @@ def task_client_payload(task: dict) -> dict:
         'xp': task.get('xp', 0),
     }
     if ttype == 'code':
-        base['starter_code'] = task.get('starter_code') or ''
+        sc = task.get('starter_code')
+        if sc is None or not str(sc).strip():
+            base['starter_code'] = DEFAULT_CODE_EDITOR_PLACEHOLDER
+        else:
+            base['starter_code'] = sc
     elif ttype == 'quiz':
         base['options'] = task['options']
     elif ttype == 'ordering':

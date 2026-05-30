@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
@@ -107,7 +108,7 @@ TOPIC: dict = {
             'hint': 'Три print.',
             'xp': 14,
             'expected': '=== Продукты ===\n1. Яблоко\n2. Банан',
-            'starter_code': '',
+            'starter_code': DEFAULT_CODE_EDITOR_PLACEHOLDER,
         },
         {
             'id': 38,

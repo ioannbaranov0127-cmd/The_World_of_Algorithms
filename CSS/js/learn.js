@@ -1333,6 +1333,18 @@
         showNotification('Редактор очищен', 'info');
     }
 
+    function normalizePlaceholderText(s) {
+        return String(s || '')
+            .replace(/\r\n/g, '\n')
+            .replace(/\s+$/, '');
+    }
+
+    /** Пустой старт задания: новый плейсхолдер или старый с «...» */
+    function isPlaceholderContent(text) {
+        var t = normalizePlaceholderText(text);
+        return t === '# Напишите код здесь. . .' || t === '# Напишите код здесь...';
+    }
+
     function setupCodeEditor() {
         var mount = document.getElementById('codeEditorMount');
         if (!mount || !window.LearnCodeEditor || !window.LearnCodeEditor.create) return;
@@ -1340,11 +1352,33 @@
         window.LearnCodeEditor.destroy();
         var saved = localStorage.getItem(codeStorageKey());
         var initial = saved !== null && saved !== '' ? saved : cfg.editorTemplate;
+        var shouldArmPlaceholderStrip =
+            isPlaceholderContent(cfg.editorTemplate) && isPlaceholderContent(initial);
 
         window.LearnCodeEditor.create(mount, {
             initial: initial,
             onChange: scheduleSaveCode,
         });
+
+        if (!shouldArmPlaceholderStrip) return;
+
+        var stripDone = false;
+        function tryStripPlaceholderOnce() {
+            if (stripDone) return;
+            if (!isPlaceholderContent(getCodeValue())) return;
+            stripDone = true;
+            setCodeValue('', false);
+            scheduleSaveCode();
+        }
+
+        var runConsole = document.getElementById('runConsole');
+        var workbenchBody = document.querySelector('.code-workbench__body');
+        if (workbenchBody) {
+            workbenchBody.addEventListener('pointerdown', tryStripPlaceholderOnce, { capture: true, once: true });
+        }
+        if (runConsole) {
+            runConsole.addEventListener('pointerdown', tryStripPlaceholderOnce, { capture: true, once: true });
+        }
     }
 
     function bindLearnTaskUi() {
@@ -1409,6 +1443,13 @@
         if (clearBtn) {
             clearBtn.addEventListener('click', function (e) {
                 e.preventDefault();
+                if (
+                    !window.confirm(
+                        'Очистить редактор? Текущий код в этом задании будет удалён. Если вы передумали, нажмите «Отмена».'
+                    )
+                ) {
+                    return;
+                }
                 clearCode();
             });
         }
