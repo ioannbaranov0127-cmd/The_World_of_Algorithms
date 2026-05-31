@@ -80,25 +80,32 @@
         </div>
 
         {% if project_meta %}
-        <div class="card card--soft" id="projectProgressCard">
-            <h3 class="card__title">🍽️ {{ project_meta.name }} — прогресс</h3>
-            <p class="card__muted project-progress__version">Версия <span data-project-version>{{ project_meta.version_display }}</span></p>
-            <div class="project-progress__meter" role="progressbar"
-                aria-valuenow="{{ project_meta.stages_done_count }}"
-                aria-valuemin="0"
-                aria-valuemax="{{ project_meta.stages_total }}">
-                <div class="project-progress__meter-fill" data-project-bar
-                    style="width: {{ (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 }}%"></div>
+        <div class="card card--soft project-progress{% if project_meta.is_complete %} project-progress--complete{% endif %}" id="projectProgressCard">
+            <div class="project-progress__hero">
+                <h3 class="card__title project-progress__heading">Проект курса</h3>
+                <p class="project-progress__subtitle">{{ project_meta.name }}</p>
+                <div class="project-progress__meter duo-progress" role="progressbar"
+                    aria-valuenow="{{ project_meta.stages_done_count }}"
+                    aria-valuemin="0"
+                    aria-valuemax="{{ project_meta.stages_total }}">
+                    <div class="project-progress__meter-fill duo-progress__fill" data-project-bar
+                        style="width: {{ (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 }}%"></div>
+                </div>
+                <p class="project-progress__summary" data-project-summary>
+                    {% set _pct = (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 %}
+                    {% if project_meta.is_complete %}
+                    Проект готов · 100% готовности
+                    {% else %}
+                    {{ project_meta.stages_done_count }} из {{ project_meta.stages_total }} этапов завершено · {{ _pct }}% готовности
+                    {% endif %}
+                </p>
             </div>
-            <p class="project-progress__summary" data-project-summary>
-                {{ project_meta.stages_done_count }} / {{ project_meta.stages_total }} этапов
-            </p>
-            <ul class="project-checklist" data-project-checklist aria-label="Этапы развития проекта">
+            <ul class="project-checklist project-progress__path" data-project-checklist aria-label="Этапы развития проекта">
                 {% for step in project_meta.checklist %}
                 <li class="project-checklist__item project-checklist__item--{{ step.status }}" data-stage="{{ step.num }}">
+                    <span class="project-checklist__mark" aria-hidden="true"></span>
                     <div class="project-checklist__head">
-                        <span class="project-checklist__mark" aria-hidden="true">{% if step.status == 'done' %}✓{% elif step.status == 'current' %}→{% else %}✗{% endif %}</span>
-                        <span class="project-checklist__title">{{ step.version_label }} {{ step.feature }}</span>
+                        <span class="project-checklist__title"><span class="project-checklist__ver">{{ step.version_label }}</span> {{ step.feature }}</span>
                     </div>
                 </li>
                 {% endfor %}

@@ -8,7 +8,7 @@ from flask import Flask, jsonify, redirect, render_template, request, send_from_
 from code_runner import run_python
 from code_runner.interactive_session import InteractiveSession
 from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
-from course_data.project_state import build_project_meta
+from course_data.project_state import build_project_meta, project_meta_for_task
 from course_data import (
     ACHIEVEMENTS,
     LESSONS,
@@ -277,10 +277,15 @@ def learn():
 
     task_done = current_task['id'] in progress.completed_tasks
     lm = level_meta(progress.total_xp)
-    project_meta = build_project_meta(progress, current_module)
+    topic_num = current_topic.get('num') if current_topic else None
+    project_meta = build_project_meta(progress, current_module, topic_num=topic_num)
     saved_project = progress.project_code.get(current_module, '')
     is_project_stage = current_task.get('kind') == 'project_stage'
     project_spec = current_task.get('project_spec') if is_project_stage else None
+    topic_tasks_nav = [
+        {'id': t['id'], 'index': i, 'done': t['id'] in progress.completed_tasks}
+        for i, t in enumerate((current_topic or {}).get('tasks') or [])
+    ]
 
     return render_template(
         'learn.html',
@@ -307,6 +312,7 @@ def learn():
         project_code=saved_project,
         is_project_stage=is_project_stage,
         project_spec=project_spec,
+        topic_tasks_nav=topic_tasks_nav,
     )
 
 
@@ -511,7 +517,7 @@ def check_code():
             'module_completed': module_completed,
             'next_module': next_mid,
             'level': level_meta(progress.total_xp),
-            'project_meta': build_project_meta(progress, progress.current_module),
+            'project_meta': project_meta_for_task(progress, progress.current_module, task_id),
             'project_code_saved': task.get('kind') == 'project_stage',
             **run_fields,
         })
@@ -570,7 +576,9 @@ def check_task():
             'level': level_meta(progress.total_xp),
         }
         if task.get('kind') == 'project_stage':
-            payload['project_meta'] = build_project_meta(progress, progress.current_module)
+            payload['project_meta'] = project_meta_for_task(
+                progress, progress.current_module, task_id
+            )
         return jsonify(payload)
 
     return jsonify({
@@ -590,6 +598,49 @@ def _topic_id_at(module_id: int, task_index: int) -> str | None:
     if idx < 0 or idx >= len(tasks):
         return None
     return tasks[idx].get('topic_id')
+
+
+@app.route('/goto_task', methods=['POST'])
+def goto_task_route():
+    """Переход к заданию внутри текущей темы без смены темы."""
+    progress = get_user_progress()
+    data = request.get_json() or {}
+    task_id = data.get('task_id')
+    if task_id is None:
+        return jsonify({'success': False, 'message': 'Не указано задание'}), 400
+
+    try:
+        task_id = int(task_id)
+    except (TypeError, ValueError):
+        return jsonify({'success': False, 'message': 'Некорректный id задания'}), 400
+
+    module_num = progress.current_module
+    if module_num not in LESSONS:
+        return jsonify({'success': False}), 400
+
+    mod = LESSONS[module_num]
+    if mod.get('stub') or not mod.get('tasks'):
+        return jsonify({'success': False}), 400
+
+    old_topic_id = _topic_id_at(module_num, progress.current_task_index)
+    target_topic = topic_by_task_id(module_num, task_id)
+    if not target_topic or not old_topic_id or target_topic.get('id') != old_topic_id:
+        return jsonify({'success': False, 'message': 'Можно перейти только между заданиями текущей темы'}), 400
+
+    if not _navigate_to_task_by_id(progress, task_id):
+        return jsonify({'success': False, 'message': 'Задание не найдено'}), 404
+
+    if progress.current_module != module_num:
+        return jsonify({'success': False, 'message': 'Задание в другом модуле'}), 400
+
+    return jsonify({
+        'success': True,
+        'module': progress.current_module,
+        'task_index': progress.current_task_index,
+        'topic_changed': False,
+        'current_topic_id': old_topic_id,
+        'next_topic_id': old_topic_id,
+    })
 
 
 @app.route('/next_task', methods=['POST'])
@@ -744,7 +795,9 @@ def api_session():
         'module_progress': progress.get_module_progress(progress.current_module),
         'current_module': progress.current_module,
         'level': level_meta(progress.total_xp),
-        'project_meta': build_project_meta(progress, progress.current_module),
+        'project_meta': project_meta_for_task(
+            progress, progress.current_module, task_id
+        ),
     }
     if task_id is not None:
         payload['task_completed'] = task_id in progress.completed_tasks

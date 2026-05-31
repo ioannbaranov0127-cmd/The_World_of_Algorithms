@@ -149,10 +149,11 @@ a:hover {
 .btn-accent {
     background: var(--success);
     color: #fff;
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-accent:hover:not(:disabled) {
-    filter: brightness(1.05);
+    background: #356f57;
 }
 
 .btn-ghost {
@@ -502,6 +503,106 @@ a.side-nav__link:hover {
     margin-bottom: 6px;
 }
 
+/* Навигация по практическим заданиям темы */
+.topic-task-nav {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.topic-task-nav__label {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.topic-task-nav__track {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.topic-task-nav__item {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        border-color 0.16s ease,
+        background 0.16s ease,
+        color 0.16s ease;
+}
+
+.topic-task-nav__item:hover:not(.topic-task-nav__item--active) {
+    border-color: rgba(61, 90, 128, 0.38);
+    color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.topic-task-nav__item:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.topic-task-nav__item--active {
+    border-color: var(--accent-hover);
+    background: var(--accent);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+    transform: none;
+}
+
+.topic-task-nav__item--active:hover:not(:disabled) {
+    background: var(--accent-hover);
+    box-shadow: var(--shadow-md);
+}
+
+.topic-task-nav__item--done:not(.topic-task-nav__item--active) {
+    border-color: #2f6f57;
+    background: var(--success);
+    color: #fff;
+    box-shadow: var(--shadow-sm);
+}
+
+.topic-task-nav__check {
+    display: none;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.topic-task-nav__item--done:not(.topic-task-nav__item--active) .topic-task-nav__num {
+    display: none;
+}
+
+.topic-task-nav__item--done:not(.topic-task-nav__item--active) .topic-task-nav__check {
+    display: block;
+}
+
 .task-panel {
     margin-bottom: 20px;
     padding-top: 8px;
@@ -731,8 +832,143 @@ a.side-nav__link:hover {
     font-weight: 600;
 }
 
-.project-progress__version {
+/* --- Панель проекта: LMS-стиль, в едином ключе с платформой --- */
+.project-progress {
+    position: relative;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.project-progress--complete {
+    border: 2px solid rgba(47, 111, 87, 0.72);
+    background: linear-gradient(180deg, #eef9f3 0%, #ffffff 52%, #fff6f2 100%);
+    box-shadow:
+        0 0 0 4px rgba(61, 139, 110, 0.2),
+        0 8px 26px rgba(61, 139, 110, 0.2),
+        0 0 36px rgba(217, 119, 87, 0.12);
+}
+
+.project-progress--complete .project-progress__hero {
+    border-bottom-color: rgba(61, 139, 110, 0.28);
+}
+
+.project-progress--complete .project-progress__hero .project-progress__meter {
+    background: rgba(61, 139, 110, 0.18);
+    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.project-progress--complete .project-progress__hero .project-progress__meter-fill {
+    background: linear-gradient(90deg, #1a4d35 0%, #3d8b6e 38%, #7cb89f 58%, #e8a058 82%, #d97757 100%);
+    box-shadow:
+        0 0 10px rgba(61, 139, 110, 0.35),
+        0 0 14px rgba(217, 119, 87, 0.32);
+}
+
+.project-progress__hero {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+}
+
+.project-progress__hero .project-progress__heading {
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.project-progress__subtitle {
     margin: 0 0 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.35;
+}
+
+.project-progress__hero .project-progress__meter {
+    height: 10px;
+    margin-bottom: 8px;
+    background: #e4e8ed;
+}
+
+.project-progress__hero .project-progress__meter-fill {
+    background: linear-gradient(90deg, #1f5c40 0%, #3d8b6e 55%, #5fbf8a 100%);
+    box-shadow: none;
+}
+
+.project-progress__meter {
+    height: 10px;
+    border-radius: 999px;
+    background: #e4e8ed;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.project-progress__meter-fill {
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #1f5c40 0%, #3d8b6e 55%, #5fbf8a 100%);
+    transition: width 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.project-progress__hero .project-progress__summary {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.project-progress--complete .project-progress__hero .project-progress__summary {
+    color: #2f6f57;
+    font-weight: 700;
+}
+
+.project-progress__summary {
+    margin: 0 0 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+}
+
+/* Временная шкала этапов */
+.project-progress__path {
+    position: relative;
+    gap: 8px;
+    padding: 2px 0 4px 0;
+}
+
+.project-progress__path .project-checklist__item {
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+    z-index: 1;
+}
+
+.project-progress__path .project-checklist__item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: calc(50% + 10px);
+    width: 2px;
+    height: calc(50% - 10px + 8px);
+    margin-top: 0;
+    transform: none;
+    background: #d1d5db;
+    border-radius: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.project-progress__path .project-checklist__item--done:not(:last-child)::after {
+    background: var(--toast-ok);
+    box-shadow: 0 0 8px rgba(61, 139, 110, 0.38);
+}
+
+.project-progress__path .project-checklist__item--current:not(:last-child)::after {
+    background: #d1d5db;
 }
 
 .level-card__motivation {
@@ -744,28 +980,6 @@ a.side-nav__link:hover {
 .card__title--compact {
     font-size: 15px;
     margin: 0 0 6px;
-}
-
-.project-progress__meter {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--border);
-    overflow: hidden;
-    margin-bottom: 8px;
-}
-
-.project-progress__meter-fill {
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, var(--accent), #22c55e);
-    transition: width 0.45s ease;
-}
-
-.project-progress__summary {
-    margin: 0 0 10px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
 }
 
 .project-progress__next {
@@ -788,101 +1002,215 @@ a.side-nav__link:hover {
     margin-bottom: 4px;
 }
 
+/* --- Карточки этапов: LMS / дорожная карта --- */
 .project-checklist {
     list-style: none;
     margin: 0;
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     overflow: visible;
     border: none;
     border-radius: 0;
 }
 
-.project-checklist__item {
-    border-radius: 10px;
-    overflow: hidden;
-    border-bottom: none;
+.project-progress .project-checklist {
+    gap: 8px;
 }
 
-.project-checklist__item:last-child {
-    border-bottom: none;
+.project-checklist__item {
+    position: relative;
+    border: none;
+    border-radius: var(--radius);
+    box-sizing: border-box;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .project-checklist__head {
+    flex: 1;
+    min-width: 0;
     display: flex;
     gap: 8px;
-    align-items: flex-start;
+    align-items: center;
     width: 100%;
-    padding: 9px 10px;
+    padding: 11px 12px;
     text-align: left;
     font: inherit;
     color: inherit;
+    border-radius: inherit;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
 }
 
 .project-checklist__mark {
+    position: relative;
     flex-shrink: 0;
+    align-self: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-top: 0;
+    font-size: 0;
+    line-height: 1;
+    border-radius: 50%;
+    border: 2px solid #d1d5db;
+    background: #fff;
+    z-index: 2;
+}
+
+.project-checklist__mark::after {
+    font-size: 11px;
+    line-height: 1;
     font-weight: 700;
-    font-size: 14px;
-    line-height: 1.35;
 }
 
-.project-checklist__item--done {
-    background: rgba(22, 163, 74, 0.14);
-    border-left: 3px solid #16a34a;
-}
-
+/* --- Завершённый этап (цвет как у toast «Отлично!») --- */
 .project-checklist__item--done .project-checklist__mark {
-    color: #15803d;
+    border-color: #2f6f57;
+    background: var(--toast-ok);
+    box-shadow:
+        0 0 0 4px rgba(61, 139, 110, 0.28),
+        0 0 14px rgba(61, 139, 110, 0.35);
 }
 
-.project-checklist__item--done .project-checklist__title {
-    color: #14532d;
+.project-checklist__item--done .project-checklist__mark::after {
+    content: '✓';
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
 }
 
-.project-checklist__item--pending {
-    background: rgba(220, 38, 38, 0.08);
-    border-left: 3px solid rgba(220, 38, 38, 0.35);
+.project-checklist__item--done .project-checklist__head {
+    border-left: 4px solid #2f6f57;
+    background: var(--toast-ok);
+    border-color: #2f6f57;
+    box-shadow: 0 4px 14px rgba(61, 139, 110, 0.28);
 }
 
-.project-checklist__item--pending .project-checklist__mark {
-    color: #dc2626;
-}
-
-.project-checklist__item--pending .project-checklist__title {
-    color: #7f1d1d;
-}
-
-.project-checklist__item--current {
-    background: rgba(220, 38, 38, 0.16);
-    border-left: 3px solid #dc2626;
-    box-shadow: inset 0 0 0 1px rgba(220, 38, 38, 0.12);
-}
-
-.project-checklist__item--current .project-checklist__mark {
-    color: #b91c1c;
-}
-
-.project-checklist__item--current .project-checklist__title {
-    color: #991b1b;
+.project-checklist__item--done .project-checklist__title,
+.project-checklist__item--done .project-checklist__ver {
+    color: #fff;
     font-weight: 600;
 }
 
-.project-checklist__item--pulse {
-    animation: project-checklist-pulse 1.2s ease;
+/* --- Текущий этап --- */
+.project-checklist__item--current .project-checklist__mark {
+    border-color: #3d5a80;
+    background: #3d5a80;
+    box-shadow:
+        0 0 0 3px rgba(61, 90, 128, 0.18),
+        0 0 12px rgba(61, 90, 128, 0.22);
 }
 
-@keyframes project-checklist-pulse {
-    0%, 100% { background: rgba(220, 38, 38, 0.16); }
-    50% { background: rgba(220, 38, 38, 0.28); }
+.project-checklist__item--current .project-checklist__mark::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.project-checklist__item--current .project-checklist__head {
+    border-color: rgba(61, 90, 128, 0.45);
+    box-shadow:
+        0 1px 3px rgba(15, 23, 42, 0.06),
+        0 0 0 1px rgba(61, 90, 128, 0.12),
+        0 4px 14px rgba(61, 90, 128, 0.1);
+}
+
+.project-checklist__item--current {
+    z-index: 2;
+}
+
+.project-checklist__item--current::before {
+    content: '📍 В процессе';
+    position: absolute;
+    top: -8px;
+    right: 10px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: #3d5a80;
+    background: #eef3f8;
+    border: 1px solid rgba(61, 90, 128, 0.2);
+    pointer-events: none;
+    z-index: 3;
+}
+
+.project-checklist__item--current .project-checklist__head {
+    padding-top: 14px;
+}
+
+.project-checklist__item--current .project-checklist__title,
+.project-checklist__item--current .project-checklist__ver {
+    color: var(--text);
+    font-weight: 600;
+}
+
+@keyframes project-current-soft-pulse {
+    0%, 100% {
+        box-shadow:
+            0 0 0 3px rgba(61, 90, 128, 0.18),
+            0 0 12px rgba(61, 90, 128, 0.22);
+    }
+    50% {
+        box-shadow:
+            0 0 0 5px rgba(61, 90, 128, 0.12),
+            0 0 16px rgba(61, 90, 128, 0.28);
+    }
+}
+
+.project-checklist__item--pulse .project-checklist__mark {
+    animation: project-current-soft-pulse 1.8s ease-in-out 2;
+}
+
+/* --- Будущий этап --- */
+.project-checklist__item--pending .project-checklist__mark {
+    border-color: #d1d5db;
+    background: #f3f4f6;
+}
+
+.project-checklist__item--pending .project-checklist__mark::after {
+    content: '';
+}
+
+.project-checklist__item--pending .project-checklist__head {
+    background: #f4f6f8;
+    border-color: #e6e9ee;
+    box-shadow: none;
+}
+
+.project-checklist__item--pending .project-checklist__title::before {
+    content: '🔒 ';
+    display: inline-block;
+    font-size: 16px;
+    line-height: 1;
+    vertical-align: -2px;
+    margin-right: 1px;
+}
+
+.project-checklist__item--pending .project-checklist__title,
+.project-checklist__item--pending .project-checklist__ver {
+    color: #8b939e;
+    font-weight: 500;
+}
+
+.project-checklist__ver {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
 }
 
 .project-checklist__title {
     flex: 1;
     min-width: 0;
-    font-size: 12px;
-    line-height: 1.35;
+    font-size: 14px;
+    line-height: 1.45;
     word-break: break-word;
 }
 

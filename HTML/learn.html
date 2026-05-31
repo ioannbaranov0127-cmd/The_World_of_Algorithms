@@ -46,6 +46,7 @@
   'isProjectStage': is_project_stage,
   'projectCodeServer': project_code,
   'projectMeta': project_meta,
+  'topicTasks': topic_tasks_nav,
 }|tojson }}</script>
 
 <div class="shell shell--learn">
@@ -189,6 +190,26 @@
                 </div>
             </section>
 
+            {% if topic_tasks_nav|length > 1 %}
+            <nav class="topic-task-nav" id="topicTaskNav" aria-label="Практические задания темы">
+                <p class="topic-task-nav__label">Практика · {{ tasks_in_topic_count }} заданий</p>
+                <div class="topic-task-nav__track" role="tablist">
+                    {% for item in topic_tasks_nav %}
+                    <button type="button"
+                        class="topic-task-nav__item{% if item.index == task_in_topic_index %} topic-task-nav__item--active{% endif %}{% if item.done %} topic-task-nav__item--done{% endif %}"
+                        data-task-id="{{ item.id }}"
+                        role="tab"
+                        aria-selected="{{ 'true' if item.index == task_in_topic_index else 'false' }}"
+                        aria-current="{{ 'step' if item.index == task_in_topic_index else 'false' }}"
+                        title="Задание {{ loop.index }} из {{ tasks_in_topic_count }}">
+                        <span class="topic-task-nav__num">{{ loop.index }}</span>
+                        <span class="topic-task-nav__check" aria-hidden="true">✓</span>
+                    </button>
+                    {% endfor %}
+                </div>
+            </nav>
+            {% endif %}
+
             <div id="learn-dynamic-content">
             <section class="task-panel">
                 <h2 class="task-panel__title">{% if is_project_stage %}🚀 Этап разработки проекта{% else %}Текущее тренировочное задание{% endif %}</h2>
@@ -264,25 +285,32 @@
             </div>
         </div>
 
-        <div class="card card--soft" id="projectProgressCard">
-            <h3 class="card__title">🍽️ {{ project_meta.name }} — прогресс</h3>
-            <p class="card__muted project-progress__version">Версия <span data-project-version>{{ project_meta.version_display }}</span></p>
-            <div class="project-progress__meter" role="progressbar"
-                aria-valuenow="{{ project_meta.stages_done_count }}"
-                aria-valuemin="0"
-                aria-valuemax="{{ project_meta.stages_total }}">
-                <div class="project-progress__meter-fill" data-project-bar
-                    style="width: {{ (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 }}%"></div>
+        <div class="card card--soft project-progress{% if project_meta.is_complete %} project-progress--complete{% endif %}" id="projectProgressCard">
+            <div class="project-progress__hero">
+                <h3 class="card__title project-progress__heading">Проект курса</h3>
+                <p class="project-progress__subtitle">{{ project_meta.name }}</p>
+                <div class="project-progress__meter duo-progress" role="progressbar"
+                    aria-valuenow="{{ project_meta.stages_done_count }}"
+                    aria-valuemin="0"
+                    aria-valuemax="{{ project_meta.stages_total }}">
+                    <div class="project-progress__meter-fill duo-progress__fill" data-project-bar
+                        style="width: {{ (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 }}%"></div>
+                </div>
+                <p class="project-progress__summary" data-project-summary>
+                    {% set _pct = (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 %}
+                    {% if project_meta.is_complete %}
+                    Проект готов · 100% готовности
+                    {% else %}
+                    {{ project_meta.stages_done_count }} из {{ project_meta.stages_total }} этапов завершено · {{ _pct }}% готовности
+                    {% endif %}
+                </p>
             </div>
-            <p class="project-progress__summary" data-project-summary>
-                {{ project_meta.stages_done_count }} / {{ project_meta.stages_total }} этапов
-            </p>
-            <ul class="project-checklist" data-project-checklist aria-label="Этапы развития проекта">
+            <ul class="project-checklist project-progress__path" data-project-checklist aria-label="Этапы развития проекта">
                 {% for step in project_meta.checklist %}
                 <li class="project-checklist__item project-checklist__item--{{ step.status }}" data-stage="{{ step.num }}">
+                    <span class="project-checklist__mark" aria-hidden="true"></span>
                     <div class="project-checklist__head">
-                        <span class="project-checklist__mark" aria-hidden="true">{% if step.status == 'done' %}✓{% elif step.status == 'current' %}→{% else %}✗{% endif %}</span>
-                        <span class="project-checklist__title">{{ step.version_label }} {{ step.feature }}</span>
+                        <span class="project-checklist__title"><span class="project-checklist__ver">{{ step.version_label }}</span> {{ step.feature }}</span>
                     </div>
                 </li>
                 {% endfor %}

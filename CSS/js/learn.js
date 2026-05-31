@@ -90,6 +90,7 @@
                     cfg = JSON.parse(elCfg.textContent);
                 }
                 bindLearnTaskUi();
+                updateTopicTaskNav();
                 if (window.scrollY !== scrollAnchor) {
                     window.scrollTo(0, scrollAnchor);
                 }
@@ -115,6 +116,75 @@
         }
         refreshLearnTaskInPlace().catch(function () {
             location.reload();
+        });
+    }
+
+    function updateTopicTaskNav() {
+        var nav = document.getElementById('topicTaskNav');
+        if (!nav) return;
+        var activeId = cfg.currentTaskId;
+        var tasks = cfg.topicTasks || [];
+        nav.querySelectorAll('[data-task-id]').forEach(function (btn) {
+            var tid = parseInt(btn.getAttribute('data-task-id'), 10);
+            var meta = null;
+            for (var i = 0; i < tasks.length; i++) {
+                if (tasks[i].id === tid) {
+                    meta = tasks[i];
+                    break;
+                }
+            }
+            var isActive = tid === activeId;
+            btn.classList.toggle('topic-task-nav__item--active', isActive);
+            btn.classList.toggle('topic-task-nav__item--done', !!(meta && meta.done));
+            btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            btn.setAttribute('aria-current', isActive ? 'step' : 'false');
+        });
+    }
+
+    function markCurrentTopicTaskDone(taskId) {
+        if (!cfg.topicTasks) return;
+        for (var i = 0; i < cfg.topicTasks.length; i++) {
+            if (cfg.topicTasks[i].id === taskId) {
+                cfg.topicTasks[i].done = true;
+                break;
+            }
+        }
+        updateTopicTaskNav();
+    }
+
+    function gotoTopicTask(taskId) {
+        if (taskId === cfg.currentTaskId) return;
+        saveCodeToStorage();
+        fetch('/goto_task', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: taskId }),
+        })
+            .then(function (r) {
+                return r.json();
+            })
+            .then(function (data) {
+                if (!data.success) {
+                    showNotification(data.message || 'Не удалось перейти к заданию', 'error');
+                    return;
+                }
+                handleTaskNavResponse(data);
+            })
+            .catch(function () {
+                showNotification('Сеть недоступна', 'error');
+            });
+    }
+
+    function bindTopicTaskNav() {
+        var nav = document.getElementById('topicTaskNav');
+        if (!nav || nav.dataset.bound === '1') return;
+        nav.dataset.bound = '1';
+        nav.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-task-id]');
+            if (!btn) return;
+            var tid = parseInt(btn.getAttribute('data-task-id'), 10);
+            if (!tid || tid === cfg.currentTaskId) return;
+            gotoTopicTask(tid);
         });
     }
 
@@ -201,36 +271,45 @@
         li.className = 'project-checklist__item project-checklist__item--' + (item.status || 'pending');
         li.setAttribute('data-stage', String(item.num));
 
-        var row = document.createElement('div');
-        row.className = 'project-checklist__head';
-
         var mark = document.createElement('span');
         mark.className = 'project-checklist__mark';
         mark.setAttribute('aria-hidden', 'true');
-        if (item.status === 'done') mark.textContent = '✓';
-        else if (item.status === 'current') mark.textContent = '→';
-        else mark.textContent = '✗';
+
+        var row = document.createElement('div');
+        row.className = 'project-checklist__head';
 
         var title = document.createElement('span');
         title.className = 'project-checklist__title';
-        title.textContent =
-            (item.version_label || item.version || '') + ' ' + (item.feature || 'Шаг ' + item.num);
+        var ver = document.createElement('span');
+        ver.className = 'project-checklist__ver';
+        ver.textContent = item.version_label || item.version || '';
+        title.appendChild(ver);
+        title.appendChild(document.createTextNode(' ' + (item.feature || 'Шаг ' + item.num)));
 
-        row.appendChild(mark);
         row.appendChild(title);
+        li.appendChild(mark);
         li.appendChild(row);
         return li;
     }
 
     function applyProjectMeta(meta) {
         if (!meta) return;
-        var ver = document.querySelector('[data-project-version]');
-        if (ver) ver.textContent = meta.version_display || meta.version || '0.0';
+
+        var card = document.getElementById('projectProgressCard');
+        if (card) {
+            card.classList.toggle('project-progress--complete', !!meta.is_complete);
+        }
 
         var summary = document.querySelector('[data-project-summary]');
         if (summary && meta.stages_total != null) {
-            summary.textContent =
-                (meta.stages_done_count || 0) + ' / ' + meta.stages_total + ' этапов';
+            var done = meta.stages_done_count || 0;
+            var total = meta.stages_total;
+            var pct = total ? Math.round((done / total) * 100) : 0;
+            if (meta.is_complete) {
+                summary.textContent = 'Проект готов · 100% готовности';
+            } else {
+                summary.textContent = done + ' из ' + total + ' этапов завершено · ' + pct + '% готовности';
+            }
         }
 
         var bar = document.querySelector('[data-project-bar]');
@@ -256,7 +335,7 @@
                 cur.classList.add('project-checklist__item--pulse');
                 setTimeout(function () {
                     cur.classList.remove('project-checklist__item--pulse');
-                }, 1400);
+                }, 1800);
             }
         }
     }
@@ -1126,6 +1205,7 @@
                         if (data.project_meta) {
                             applyProjectMeta(data.project_meta);
                         }
+                        markCurrentTopicTaskDone(cfg.currentTaskId);
                         if (data.module_completed) {
                             showNotification('Модуль завершён', 'success');
                             setTimeout(function () {
@@ -1484,6 +1564,7 @@
                         fetchSession();
                         applyLevelUi(data.level);
                         if (data.project_meta) applyProjectMeta(data.project_meta);
+                        markCurrentTopicTaskDone(cfg.currentTaskId);
                         var xpSide = document.querySelector('[data-total-xp]');
                         if (xpSide) xpSide.textContent = String(data.total_xp);
                         setTimeout(function () {
@@ -1768,6 +1849,8 @@
         window.resetProgress = resetProgress;
 
         bindLearnTaskUi();
+        bindTopicTaskNav();
+        updateTopicTaskNav();
 
         if (!window._learnPageHooksBound) {
             window._learnPageHooksBound = true;
