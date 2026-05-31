@@ -947,13 +947,19 @@ a.side-nav__link:hover {
     z-index: 1;
 }
 
+.project-progress__path .project-checklist__mark {
+    width: 26px;
+    height: 26px;
+    border-width: 2px;
+}
+
 .project-progress__path .project-checklist__item:not(:last-child)::after {
     content: '';
     position: absolute;
-    left: 9px;
-    top: calc(50% + 10px);
+    left: 12px;
+    top: calc(50% + 13px);
     width: 2px;
-    height: calc(50% - 10px + 8px);
+    height: calc(50% - 13px + 8px);
     margin-top: 0;
     transform: none;
     background: #d1d5db;
@@ -1084,6 +1090,15 @@ a.side-nav__link:hover {
     font-weight: 800;
 }
 
+.project-progress__path .project-checklist__item--done .project-checklist__mark::after {
+    font-size: 14px;
+}
+
+.project-progress__path .project-checklist__item--current .project-checklist__mark::after {
+    width: 7px;
+    height: 7px;
+}
+
 .project-checklist__item--done .project-checklist__head {
     border-left: 4px solid #2f6f57;
     background: var(--toast-ok);
@@ -1177,22 +1192,19 @@ a.side-nav__link:hover {
 }
 
 .project-checklist__item--pending .project-checklist__mark::after {
-    content: '';
+    content: '🔒';
+    font-size: 12px;
+    line-height: 1;
+}
+
+.project-progress__path .project-checklist__item--pending .project-checklist__mark::after {
+    font-size: 15px;
 }
 
 .project-checklist__item--pending .project-checklist__head {
     background: #f4f6f8;
     border-color: #e6e9ee;
     box-shadow: none;
-}
-
-.project-checklist__item--pending .project-checklist__title::before {
-    content: '🔒 ';
-    display: inline-block;
-    font-size: 16px;
-    line-height: 1;
-    vertical-align: -2px;
-    margin-right: 1px;
 }
 
 .project-checklist__item--pending .project-checklist__title,
