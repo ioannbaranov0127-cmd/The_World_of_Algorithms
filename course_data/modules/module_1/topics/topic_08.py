@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Тема 8. Тренажёр ввода текста и вывода на экран."""
+"""Тема 7. Работа с текстовыми данными."""
 
 from __future__ import annotations
 
@@ -7,11 +7,11 @@ from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
-    'id': 'm1-t8',
-    'num': 8,
-    'title': 'Тема 8. Тренажёр ввода текста и вывода на экран',
-    'summary': 'print, input, метод lower() и выбор продукта без учёта регистра.',
-    'project_step': project_step_for_topic(8),
+    'id': 'm1-t7',
+    'num': 7,
+    'title': 'Тема 7. Работа с текстовыми данными',
+    'summary': 'Строки, lower(), сравнение и обработка текста.',
+    'project_step': project_step_for_topic(7),
     'theory': {
         'intro': (
             'Пользователь может набрать «Яблоко», «яблоко» или «ЯБЛОКО» — для программы '

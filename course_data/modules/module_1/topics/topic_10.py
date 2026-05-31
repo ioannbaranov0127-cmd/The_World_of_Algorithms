@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Тема 10. Операции сравнения."""
+"""Тема 9. Операции сравнения."""
 
 from __future__ import annotations
 
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
-    'id': 'm1-t10',
-    'num': 10,
-    'title': 'Тема 10. Операции сравнения',
-    'summary': '==, !=, >, <, >=, <= и оценка результата «Мало / Нормально / Много».',
-    'project_step': project_step_for_topic(10),
+    'id': 'm1-t9',
+    'num': 9,
+    'title': 'Тема 9. Операции сравнения',
+    'summary': '==, !=, >, <, >=, <= и сравнение результатов.',
+    'project_step': project_step_for_topic(9),
     'theory': {
         'intro': (
             'После расчёта калорий пользователю полезно понять: мало это, норма или перебор. '

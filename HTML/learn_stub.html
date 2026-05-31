@@ -15,7 +15,7 @@
         </nav>
 
         <div class="card card--soft progress-card">
-            <div class="progress-card__label">{{ current_module.icon }} Модуль {{ current_module_num }}</div>
+            <div class="progress-card__label">Модуль {{ current_module_num }}</div>
             <div class="progress-card__percent">{{ modules_stats[current_module_num - 1].progress if modules_stats|length >= current_module_num else 0 }}%</div>
             <div class="duo-progress sidebar-main-progress" role="progressbar"
                 aria-valuenow="{{ modules_stats[current_module_num - 1].progress if modules_stats|length >= current_module_num else 0 }}" aria-valuemin="0"

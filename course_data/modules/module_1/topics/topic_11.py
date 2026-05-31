@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Тема 11. Цикл for."""
+"""Тема 10. Цикл while и выход из цикла."""
 
 from __future__ import annotations
 
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
-    'id': 'm1-t11',
-    'num': 11,
-    'title': 'Тема 11. Цикл for',
-    'summary': 'Повторение действий, range() и несколько продуктов подряд.',
-    'project_step': project_step_for_topic(11),
+    'id': 'm1-t10',
+    'num': 10,
+    'title': 'Тема 10. Цикл while и выход из цикла',
+    'summary': 'while, break и условие завершения цикла.',
+    'project_step': project_step_for_topic(10),
     'theory': {
         'intro': (
             'Один раз спросить продукт — мало. За обед можно съесть несколько позиций. '

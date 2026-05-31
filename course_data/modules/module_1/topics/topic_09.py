@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Тема 9. Условные конструкции."""
+"""Тема 8. Условные конструкции."""
 
 from __future__ import annotations
 
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
-    'id': 'm1-t9',
-    'num': 9,
-    'title': 'Тема 9. Условные конструкции',
-    'summary': 'if, elif, else и ветвление по выбранному продукту.',
-    'project_step': project_step_for_topic(9),
+    'id': 'm1-t8',
+    'num': 8,
+    'title': 'Тема 8. Условные конструкции',
+    'summary': 'if, elif, else и ветвление программы.',
+    'project_step': project_step_for_topic(8),
     'theory': {
         'intro': (
             'Калькулятор уже умеет спрашивать продукт и граммы. Но у яблока и банана разная '

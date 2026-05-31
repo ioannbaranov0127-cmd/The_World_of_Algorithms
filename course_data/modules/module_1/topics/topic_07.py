@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
-"""Тема 7. Команда input()."""
+"""Тема 5. Команда input()."""
 
 from __future__ import annotations
 
 from course_data.project import project_step_for_topic
 
 TOPIC: dict = {
-    'id': 'm1-t7',
-    'num': 7,
-    'title': 'Тема 7. Команда input()',
-    'summary': 'Ввод данных от пользователя и преобразование строк в числа.',
-    'project_step': project_step_for_topic(7),
+    'id': 'm1-t5',
+    'num': 5,
+    'title': 'Тема 5. Команда input()',
+    'summary': 'input(), получение данных от пользователя, преобразование типов.',
+    'project_step': project_step_for_topic(5),
     'theory': {
         'intro': (
             'До сих пор все числа мы писали в коде сами. В настоящей программе пользователь '
