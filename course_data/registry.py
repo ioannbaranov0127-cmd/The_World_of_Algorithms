@@ -5,12 +5,27 @@ from __future__ import annotations
 
 from course_data.task_types import normalize_task
 
+_PROJECT_TASK_KINDS = frozenset({'project_stage', 'project_step'})
+
+
+def _tasks_with_project_last(tasks: list[dict]) -> list[dict]:
+    """Проектное задание — всегда последний этап в теме."""
+    regular: list[dict] = []
+    project: list[dict] = []
+    for task in tasks:
+        if task.get('kind') in _PROJECT_TASK_KINDS:
+            project.append(task)
+        else:
+            regular.append(task)
+    return regular + project
+
 
 def finalize_topic(topic: dict) -> dict:
     """Копия темы с нормализованными заданиями и полями num / project_step."""
     row = dict(topic)
     tasks = row.get('tasks') or []
-    row['tasks'] = [normalize_task(t) for t in tasks]
+    normalized = [normalize_task(t) for t in tasks]
+    row['tasks'] = _tasks_with_project_last(normalized)
     return row
 
 

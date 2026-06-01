@@ -492,10 +492,11 @@ def check_code():
     is_correct = False
     test_failures: list[str] = []
     if error_short is None:
-        is_correct = stdout_matches(output, expected)
-        if is_correct and task.get('kind') == 'project_stage':
-            ok_tests, test_failures = validate_project_tests(code, task.get('project_tests'))
+        if task.get('kind') == 'project_stage':
+            ok_tests, test_failures = validate_project_tests(code, output, task.get('project_tests'))
             is_correct = ok_tests
+        else:
+            is_correct = stdout_matches(output, expected)
 
     if is_correct:
         progress.complete_task(task_id, task['xp'])
@@ -522,10 +523,18 @@ def check_code():
             **run_fields,
         })
 
+    expected_for_client = expected
+    if task.get('kind') == 'project_stage':
+        spec = task.get('project_spec') or {}
+        expected_for_client = spec.get(
+            'expected_result',
+            'Проверьте требования проектного этапа выше.',
+        )
+
     payload = {
         'success': False,
         'output': output if output else '(пусто)',
-        'expected': expected,
+        'expected': expected_for_client,
         'error': error_short,
         'error_detail': error_detail,
         **run_fields,

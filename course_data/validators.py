@@ -13,39 +13,86 @@ def stdout_matches(output: str, expected: str) -> bool:
     return output_lines == expected_lines
 
 
-def validate_project_tests(code: str, tests: list[dict] | None) -> tuple[bool, list[str]]:
-    """Проверки кода этапа разработки (без stdout)."""
+def validate_project_tests(code: str, output: str, tests: list[dict] | None) -> tuple[bool, list[str]]:
+    """Гибкие проверки этапа разработки: код + важные фрагменты вывода."""
     if not tests:
         return True, []
     failures: list[str] = []
     src = code or ''
+    out = output or ''
+    tree = None
+
+    def parsed_tree():
+        nonlocal tree
+        if tree is None:
+            tree = ast.parse(src)
+        return tree
+
     for i, rule in enumerate(tests, start=1):
         check = rule.get('check')
         msg = rule.get('message') or f'Тест {i} не пройден'
         if check == 'contains':
             if rule.get('value', '') not in src:
                 failures.append(msg)
+        elif check == 'contains_any':
+            values = rule.get('values') or []
+            if not any(str(value) in src for value in values):
+                failures.append(msg)
+        elif check == 'contains_at_least':
+            values = rule.get('values') or []
+            min_count = int(rule.get('count', 1))
+            found = sum(1 for value in values if str(value) in src)
+            if found < min_count:
+                failures.append(msg)
+        elif check == 'output_contains':
+            if rule.get('value', '') not in out:
+                failures.append(msg)
+        elif check == 'output_contains_any':
+            values = rule.get('values') or []
+            if not any(str(value) in out for value in values):
+                failures.append(msg)
+        elif check == 'output_contains_at_least':
+            values = rule.get('values') or []
+            min_count = int(rule.get('count', 1))
+            found = sum(1 for value in values if str(value) in out)
+            if found < min_count:
+                failures.append(msg)
+        elif check == 'output_line_count_at_least':
+            min_count = int(rule.get('count', 1))
+            lines = [line.strip() for line in out.split('\n') if line.strip()]
+            if len(lines) < min_count:
+                failures.append(msg)
         elif check == 'not_contains':
             if rule.get('value', '') in src:
                 failures.append(msg)
         elif check == 'uses_name':
             try:
-                tree = ast.parse(src)
+                parsed = parsed_tree()
             except SyntaxError:
                 failures.append('Сначала исправьте синтаксис программы.')
                 break
-            names = {n.id for n in ast.walk(tree) if isinstance(n, ast.Name)}
+            names = {n.id for n in ast.walk(parsed) if isinstance(n, ast.Name)}
             if rule.get('name') not in names:
+                failures.append(msg)
+        elif check == 'uses_any_name':
+            try:
+                parsed = parsed_tree()
+            except SyntaxError:
+                failures.append('Сначала исправьте синтаксис программы.')
+                break
+            names = {n.id for n in ast.walk(parsed) if isinstance(n, ast.Name)}
+            expected_names = set(rule.get('names') or [])
+            if not names.intersection(expected_names):
                 failures.append(msg)
         elif check == 'uses_call':
             fn = rule.get('name', '')
             found = False
             try:
-                tree = ast.parse(src)
+                parsed = parsed_tree()
             except SyntaxError:
                 failures.append('Сначала исправьте синтаксис программы.')
                 break
-            for node in ast.walk(tree):
+            for node in ast.walk(parsed):
                 if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
                     if node.func.id == fn:
                         found = True

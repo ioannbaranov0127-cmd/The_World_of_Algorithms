@@ -34,6 +34,8 @@ def normalize_task(task: dict) -> dict:
     kind = row.pop('kind', None) or row.pop('category', None)
     if kind and kind in _KIND_TO_TYPE:
         row.setdefault('type', _KIND_TO_TYPE[kind])
+        if kind == 'project_step':
+            kind = 'project_stage'
         row['kind'] = kind
     elif 'type' not in row:
         row['type'] = 'code'

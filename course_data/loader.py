@@ -33,8 +33,8 @@ def _module_2() -> dict:
         'title': 'Списки и развитие проекта',
         'icon': '📋',
         'description': (
-            f'Продолжение «{COURSE["project_name"]}»: повторение базы, списки продуктов '
-            f'и методы append, remove, len.'
+            f'Развитие «{COURSE["project_name"]}» после версии 1.0: повторение, каталог продуктов '
+            f'в списках и журнал порций (append, remove, len).'
         ),
         'topics': topics,
     }
