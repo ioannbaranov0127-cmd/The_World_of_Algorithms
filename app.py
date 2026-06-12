@@ -316,9 +316,9 @@ def learn():
     )
 
 
-def _run_with_timing(code: str, stdin: str):
+def _run_with_timing(code: str, stdin: str, *, echo_stdin: bool = False):
     t0 = time.perf_counter()
-    result = run_python(code, stdin=stdin)
+    result = run_python(code, stdin=stdin, echo_stdin=echo_stdin)
     duration_ms = round((time.perf_counter() - t0) * 1000.0, 2)
     return result, duration_ms
 
@@ -488,6 +488,10 @@ def check_code():
     result, duration_ms = _run_with_timing(code, stdin)
     output, error_short, error_detail = result.to_legacy_tuple()
     run_fields = {**result.to_api_dict(duration_ms=duration_ms)}
+    if stdin.strip():
+        display_result, _display_duration_ms = _run_with_timing(code, stdin, echo_stdin=True)
+        if not display_result.timed_out and display_result.exit_code == result.exit_code:
+            run_fields['stdout'] = display_result.stdout
 
     is_correct = False
     test_failures: list[str] = []

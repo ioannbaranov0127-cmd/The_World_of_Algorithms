@@ -167,6 +167,18 @@ a:hover {
     border-color: transparent;
 }
 
+.btn-stop {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-stop:hover:not(:disabled) {
+    background: #a94a4a;
+    border-color: #a94a4a;
+}
+
 .btn-block {
     width: 100%;
 }
@@ -505,21 +517,23 @@ a.side-nav__link:hover {
 
 /* Навигация по практическим заданиям темы */
 .topic-task-nav {
-    margin: 0 0 16px;
-    padding: 12px 14px;
+    --topic-nav-border: #3d597f;
+    --topic-nav-border-width: 4px;
+    margin: 8px 0 18px;
+    padding: 14px 16px;
     border-radius: var(--radius-lg);
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-sm);
+    background: var(--accent-soft);
+    border: var(--topic-nav-border-width) solid var(--topic-nav-border);
+    box-shadow: none;
 }
 
 .topic-task-nav__label {
-    margin: 0 0 10px;
+    margin: 0 0 12px;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--accent);
 }
 
 .topic-task-nav__track {
@@ -531,36 +545,31 @@ a.side-nav__link:hover {
 
 .topic-task-nav__item {
     position: relative;
-    width: 42px;
-    height: 42px;
+    width: 40px;
+    height: 40px;
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
+    border: var(--topic-nav-border-width) solid var(--topic-nav-border);
+    border-radius: 10px;
     background: #fff;
-    color: var(--muted);
+    color: var(--accent);
     font-family: inherit;
     font-size: 14px;
     font-weight: 700;
     line-height: 1;
     cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
     transition:
-        transform 0.16s ease,
-        box-shadow 0.16s ease,
-        border-color 0.16s ease,
-        background 0.16s ease,
-        color 0.16s ease;
+        background 0.15s ease,
+        color 0.15s ease;
 }
 
-.topic-task-nav__item:hover:not(.topic-task-nav__item--active) {
-    border-color: rgba(61, 90, 128, 0.38);
-    color: var(--accent);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+.topic-task-nav__item:hover:not(.topic-task-nav__item--active):not(.topic-task-nav__item--done) {
+    background: #fff;
+    border-color: var(--topic-nav-border);
 }
 
 .topic-task-nav__item:focus-visible {
@@ -569,38 +578,28 @@ a.side-nav__link:hover {
 }
 
 .topic-task-nav__item--active {
-    border-color: var(--accent-hover);
+    border-color: var(--topic-nav-border);
     background: var(--accent);
     color: #fff;
-    box-shadow: var(--shadow-sm);
-    transform: none;
 }
 
 .topic-task-nav__item--active:hover:not(:disabled) {
     background: var(--accent-hover);
-    box-shadow: var(--shadow-md);
 }
 
-.topic-task-nav__item--done:not(.topic-task-nav__item--active) {
-    border-color: #2f6f57;
+.topic-task-nav__item--done {
+    border-color: var(--success);
     background: var(--success);
     color: #fff;
-    box-shadow: var(--shadow-sm);
+}
+
+.topic-task-nav__item--done:hover:not(:disabled) {
+    border-color: #356f57;
+    background: #356f57;
 }
 
 .topic-task-nav__check {
     display: none;
-    font-size: 16px;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.topic-task-nav__item--done:not(.topic-task-nav__item--active) .topic-task-nav__num {
-    display: none;
-}
-
-.topic-task-nav__item--done:not(.topic-task-nav__item--active) .topic-task-nav__check {
-    display: block;
 }
 
 .task-panel {
@@ -2471,6 +2470,26 @@ a.side-nav__link:hover {
     align-items: start;
     max-width: 100%;
     min-width: 0;
+}
+
+.theory-schemes--stack {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 1fr;
+    align-items: start;
+    max-width: 100%;
+    min-width: 0;
+}
+
+.theory-schemes--stack .theory-scheme-figure__media {
+    min-height: clamp(320px, 50vmin, 640px);
+    max-height: min(85vh, 860px);
+}
+
+.theory-schemes--stack .theory-scheme-figure__img {
+    width: 100%;
+    max-width: 100%;
+    max-height: min(85vh, 860px);
 }
 
 @media (min-width: 768px) {

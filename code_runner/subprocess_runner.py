@@ -17,6 +17,32 @@ DEFAULT_TIMEOUT_SEC = 8.0
 # Ограничение размера вывода в символах (после декодирования), чтобы не раздувать память.
 MAX_STDIO_CHARS = 200_000
 
+ECHO_STDIN_HARNESS_TEMPLATE = '''# -*- coding: utf-8 -*-
+"""Служебная обёртка для красивого отображения input() при проверке."""
+import builtins as _builtins
+import sys as _sys
+
+def _edu_input(prompt=""):
+    p = "" if prompt is None else str(prompt)
+    if p:
+        _sys.stdout.write(p)
+        _sys.stdout.flush()
+    line = _sys.stdin.readline()
+    if line == "":
+        raise EOFError("ввод закончился")
+    value = line.rstrip("\\r\\n")
+    _sys.stdout.write(value + "\\n")
+    _sys.stdout.flush()
+    return value
+
+_builtins.input = _edu_input
+
+_user_path = _sys.argv[1]
+with open(_user_path, encoding="utf-8") as _uf:
+    _code = _uf.read()
+exec(compile(_code, _user_path, "exec"), {"__name__": "__main__", "__builtins__": _builtins})
+'''
+
 
 @dataclass(frozen=True)
 class RunResult:
@@ -71,6 +97,7 @@ def run_python(
     stdin: str = "",
     *,
     timeout_sec: float = DEFAULT_TIMEOUT_SEC,
+    echo_stdin: bool = False,
 ) -> RunResult:
     """
     Запускает многострочный код в отдельном процессе ``python -X utf8 -I script.py``.
@@ -82,6 +109,9 @@ def run_python(
     stdin:
         Текст, целиком передаваемый в stdin процесса (построчно читается через ``input()``).
         Каждый вызов ``input()`` обычно читает до конца строки включительно с ``\\n``.
+    echo_stdin:
+        Если True, служебная обёртка показывает введённые строки после prompt из input().
+        Это используется только для понятного вывода проверки, не для сравнения ответа.
     timeout_sec:
         Лимит времени на выполнение процесса.
 
@@ -92,6 +122,7 @@ def run_python(
     Это не песочница уровня ОС: доступ к файловой системе остаётся как у обычного Python.
     """
     path: str | None = None
+    harness_path: str | None = None
     tmp_dir = runner_temp_dir()
     try:
         fd, path = tempfile.mkstemp(suffix=".py", prefix="usercode_", dir=tmp_dir)
@@ -99,8 +130,15 @@ def run_python(
             tmp.write(code)
         # Файл закрыт — на Windows скрипт можно запускать без блокировки на запись.
 
+        args = [sys.executable, "-X", "utf8", "-I", path]
+        if echo_stdin:
+            fd_h, harness_path = tempfile.mkstemp(suffix=".py", prefix="usercode_echo_", dir=tmp_dir)
+            with os.fdopen(fd_h, "w", encoding="utf-8", newline="\n") as tmp_h:
+                tmp_h.write(ECHO_STDIN_HARNESS_TEMPLATE)
+            args = [sys.executable, "-X", "utf8", "-I", harness_path, path]
+
         run_kwargs: dict = {
-            "args": [sys.executable, "-X", "utf8", "-I", path],
+            "args": args,
             "input": stdin,
             "capture_output": True,
             "text": True,
@@ -135,8 +173,9 @@ def run_python(
             timed_out=False,
         )
     finally:
-        if path:
-            try:
-                os.unlink(path)
-            except OSError:
-                pass
+        for p in (path, harness_path):
+            if p:
+                try:
+                    os.unlink(p)
+                except OSError:
+                    pass

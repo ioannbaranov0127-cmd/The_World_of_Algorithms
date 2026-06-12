@@ -145,7 +145,16 @@
                 {% endif %}
 
                 {% if t.scheme_gallery %}
-                <div class="theory-schemes theory-schemes--pair" role="group" aria-label="Схемы к теме">
+                {% for sec in t.scheme_gallery_before or [] %}
+                <div class="theory-block">
+                    <h3 class="theory-block__title">{{ sec.title }}</h3>
+                    <p class="theory-block__text">{{ sec.body }}</p>
+                    {% if sec.code %}
+                    <div class="theory-snippet" tabindex="0">{% for line in sec.code.split('\n') %}<span class="theory-snippet__line">{{ line }}</span>{% endfor %}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                <div class="theory-schemes {% if t.scheme_gallery_layout == 'stack' %}theory-schemes--stack{% else %}theory-schemes--pair{% endif %}" role="group" aria-label="Схемы к теме">
                     {% for fig in t.scheme_gallery %}
                     <figure class="theory-scheme-figure">
                         <div class="theory-scheme-figure__media">
@@ -155,6 +164,15 @@
                         </div>
                         <figcaption class="theory-scheme-figure__caption">{% if fig.num %}{{ fig.num }} — {% endif %}{{ fig.caption }}</figcaption>
                     </figure>
+                    {% for sec in fig.sections_after or [] %}
+                    <div class="theory-block">
+                        <h3 class="theory-block__title">{{ sec.title }}</h3>
+                        <p class="theory-block__text">{{ sec.body }}</p>
+                        {% if sec.code %}
+                        <div class="theory-snippet" tabindex="0">{% for line in sec.code.split('\n') %}<span class="theory-snippet__line">{{ line }}</span>{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
                     {% endfor %}
                 </div>
                 {% endif %}
@@ -243,7 +261,7 @@
                 </div>
                 <div class="code-workbench__actions">
                     <button type="button" class="btn btn-secondary" id="runCodeBtn">▶ Выполнить</button>
-                    <button type="button" class="btn btn-ghost" id="stopRunBtn" style="display:none">Остановить</button>
+                    <button type="button" class="btn btn-stop" id="stopRunBtn" style="display:none">Остановить</button>
                     <button type="button" class="btn btn-ghost" id="clearCodeBtn">Очистить редактор</button>
                     <button type="button" class="btn btn-accent" id="checkCodeBtn">Проверить</button>
                 </div>
