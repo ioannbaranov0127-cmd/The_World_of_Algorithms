@@ -137,8 +137,8 @@ STAGE_06 = _stage(
     'Проектный этап проверяется по коду и важным частям вывода.',
     _PROJECT_HEADER + '# добавьте расчёт calories и print\n',
     [
-        {'check': 'uses_any_name', 'names': ['calories', 'kal', 'kcal'], 'message': 'Сохраните результат расчёта в переменную.'},
-        {'check': 'contains', 'value': '/ 100', 'message': 'В формуле нужно деление на 100.'},
+        {'check': 'uses_any_name', 'names': ['calories', 'calori', 'calorii', 'calory', 'kal', 'kcal'], 'message': 'Сохраните результат расчёта в переменную.'},
+        {'check': 'contains_any', 'values': ['/ 100', '/100', '/ 100.0', '/100.0'], 'message': 'В формуле нужно деление на 100.'},
         {'check': 'output_contains_any', 'values': ['Кал', 'кал', 'ккал'], 'message': 'Покажите пользователю калории.'},
     ],
 )
@@ -167,7 +167,7 @@ STAGE_07 = _stage(
     'Проектный этап проверяется по коду и важным частям вывода.',
     _PROJECT_HEADER + '# выведите понятный результат одной порции\n',
     [
-        {'check': 'uses_any_name', 'names': ['calories', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
+        {'check': 'uses_any_name', 'names': ['calories', 'calori', 'calorii', 'calory', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
         {'check': 'contains_any', 'values': ['Добавлено', 'Калории', 'калории', 'ккал'], 'message': 'Выведите понятную подпись к результату.'},
         {'check': 'output_contains_any', 'values': ['Добавлено', 'Калории', 'калории', 'ккал'], 'message': 'В выводе должно быть понятно, сколько калорий добавлено.'},
     ],
@@ -202,7 +202,7 @@ STAGE_08 = _stage(
         {'check': 'contains', 'value': 'if', 'message': 'Добавьте выбор продукта через условие.'},
         {'check': 'contains_any', 'values': ['52', '89', '165', '110', '130'], 'message': 'Добавьте калорийность продуктов.'},
         {'check': 'contains_any', 'values': ['яблоко', 'банан', '1', '2'], 'message': 'Добавьте хотя бы два варианта выбора продукта.'},
-        {'check': 'uses_any_name', 'names': ['calories', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
+        {'check': 'uses_any_name', 'names': ['calories', 'calori', 'calorii', 'calory', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
     ],
 )
 
@@ -263,7 +263,7 @@ STAGE_10 = _stage(
     [
         {'check': 'contains', 'value': 'while', 'message': 'Используйте цикл while.'},
         {'check': 'contains', 'value': 'break', 'message': 'Завершайте программу через break.'},
-        {'check': 'uses_any_name', 'names': ['calories', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
+        {'check': 'uses_any_name', 'names': ['calories', 'calori', 'calorii', 'calory', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
         {'check': 'uses_any_name', 'names': ['total', 'itog', 'itogo', 'summa'], 'message': 'Сохраните общий итог.'},
         {'check': 'output_contains_any', 'values': ['Всего', 'Итого', 'ИТОГО', 'итого'], 'message': 'Покажите общий итог.'},
     ],
