@@ -188,6 +188,96 @@
         });
     }
 
+    function bindSchemeLightbox() {
+        var box = document.getElementById('schemeLightbox');
+        if (!box || box.dataset.bound === '1') return;
+        box.dataset.bound = '1';
+
+        var img = document.getElementById('schemeLightboxImg');
+        var title = document.getElementById('schemeLightboxTitle');
+        var caption = document.getElementById('schemeLightboxCaption');
+        var viewport = box.querySelector('.scheme-lightbox__viewport');
+        var percentBtn = box.querySelector('[data-scheme-zoom="reset"]');
+        var zoom = 1;
+
+        function getFitZoom() {
+            if (!img || !viewport || !img.naturalWidth || !img.naturalHeight) return 1;
+            var availableWidth = Math.max(1, viewport.clientWidth - 4);
+            var availableHeight = Math.max(1, viewport.clientHeight - 4);
+            var widthZoom = availableWidth / img.naturalWidth;
+            var heightZoom = availableHeight / img.naturalHeight;
+            return Math.min(1, widthZoom, heightZoom);
+        }
+
+        function applyZoom(nextZoom) {
+            zoom = Math.max(0.15, Math.min(4, nextZoom));
+            if (img) img.style.width = zoom * 100 + '%';
+            if (percentBtn) percentBtn.textContent = Math.round(zoom * 100) + '%';
+        }
+
+        function fitToViewport() {
+            applyZoom(getFitZoom());
+        }
+
+        function openLightbox(src, text) {
+            if (!img) return;
+            img.src = src;
+            img.alt = text || 'Схема';
+            if (title) title.textContent = text || 'Схема';
+            if (caption) caption.textContent = text || '';
+            box.hidden = false;
+            document.body.classList.add('scheme-lightbox-open');
+            if (img.complete) fitToViewport();
+            else img.onload = fitToViewport;
+            var closeBtn = box.querySelector('[data-scheme-close]');
+            if (closeBtn) closeBtn.focus();
+        }
+
+        function closeLightbox() {
+            box.hidden = true;
+            document.body.classList.remove('scheme-lightbox-open');
+            if (img) {
+                img.removeAttribute('src');
+                img.style.width = '';
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            var trigger = e.target.closest('.theory-scheme-zoom-trigger');
+            if (!trigger) return;
+            e.preventDefault();
+            openLightbox(trigger.getAttribute('data-scheme-src'), trigger.getAttribute('data-scheme-caption'));
+        });
+
+        box.addEventListener('click', function (e) {
+            if (e.target.closest('[data-scheme-close]')) {
+                closeLightbox();
+                return;
+            }
+            var control = e.target.closest('[data-scheme-zoom]');
+            if (!control) return;
+            var action = control.getAttribute('data-scheme-zoom');
+            if (action === 'in') applyZoom(zoom + 0.25);
+            else if (action === 'out') applyZoom(zoom - 0.25);
+            else if (action === 'fit') fitToViewport();
+            else applyZoom(1);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (box.hidden) return;
+            if (e.key === 'Escape') closeLightbox();
+            else if (e.key === '+' || e.key === '=') applyZoom(zoom + 0.25);
+            else if (e.key === '-' || e.key === '_') applyZoom(zoom - 0.25);
+            else if (e.key === '0') applyZoom(1);
+            else if (e.key.toLowerCase() === 'f') fitToViewport();
+        });
+
+        window.addEventListener('resize', function () {
+            if (box.hidden) return;
+            if (zoom <= getFitZoom() + 0.02) fitToViewport();
+        });
+    }
+
     function initLearnNavigationScroll() {
         applyLearnScrollOnLoad();
 
@@ -1850,6 +1940,7 @@
 
         bindLearnTaskUi();
         bindTopicTaskNav();
+        bindSchemeLightbox();
         updateTopicTaskNav();
 
         if (!window._learnPageHooksBound) {

@@ -2539,6 +2539,45 @@ a.side-nav__link:hover {
     overflow: hidden;
 }
 
+.theory-scheme-zoom-trigger {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: zoom-in;
+}
+
+.theory-scheme-zoom-trigger__hint {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: rgba(26, 29, 33, 0.78);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0;
+    transform: translateY(-3px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.theory-scheme-zoom-trigger:hover .theory-scheme-zoom-trigger__hint,
+.theory-scheme-zoom-trigger:focus-visible .theory-scheme-zoom-trigger__hint {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.theory-scheme-zoom-trigger:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: -3px;
+}
+
 .theory-scheme-figure__img {
     display: block;
     width: 100%;
@@ -2556,6 +2595,160 @@ a.side-nav__link:hover {
     color: var(--text);
     line-height: 1.35;
     text-align: center;
+}
+
+.scheme-lightbox[hidden] {
+    display: none !important;
+}
+
+.scheme-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 1200;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+}
+
+.scheme-lightbox__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.72);
+}
+
+.scheme-lightbox__panel {
+    position: relative;
+    z-index: 1;
+    width: min(1120px, 96vw);
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    border-radius: 16px;
+    background: #fff;
+    border: 2px solid var(--accent);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.scheme-lightbox__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+}
+
+.scheme-lightbox__title {
+    margin: 0;
+    font-size: 16px;
+    color: var(--text);
+}
+
+.scheme-lightbox__close {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    color: var(--text);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.scheme-lightbox__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    background: #f8fafc;
+}
+
+.scheme-lightbox__control {
+    min-width: 44px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--accent);
+    background: #fff;
+    color: var(--accent);
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.scheme-lightbox__control--fit,
+.scheme-lightbox__control--percent {
+    min-width: 72px;
+}
+
+.scheme-lightbox__viewport {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
+    padding: 18px;
+    background: #f4f6f8;
+    text-align: center;
+}
+
+.scheme-lightbox__img {
+    display: inline-block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+}
+
+.scheme-lightbox__caption {
+    margin: 0;
+    padding: 12px 18px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+    text-align: center;
+}
+
+body.scheme-lightbox-open {
+    overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .scheme-lightbox {
+        padding: 8px;
+    }
+
+    .scheme-lightbox__panel {
+        width: 100%;
+        max-height: 96vh;
+        border-radius: 12px;
+    }
+
+    .scheme-lightbox__head {
+        padding: 10px 12px;
+    }
+
+    .scheme-lightbox__title {
+        font-size: 14px;
+    }
+
+    .scheme-lightbox__controls {
+        padding: 8px 12px;
+    }
+
+    .scheme-lightbox__control {
+        height: 32px;
+        min-width: 40px;
+        padding: 0 10px;
+    }
+
+    .scheme-lightbox__viewport {
+        padding: 8px;
+    }
+
+    .scheme-lightbox__caption {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
 }
 
 .theory-scheme {
