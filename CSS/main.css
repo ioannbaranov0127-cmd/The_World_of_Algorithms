@@ -515,6 +515,37 @@ a.side-nav__link:hover {
     margin-bottom: 6px;
 }
 
+.callout-scheme {
+    margin: 12px 0 0;
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+}
+
+.callout-scheme__trigger {
+    min-height: 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.callout-scheme__img {
+    display: block;
+    width: 100%;
+    max-height: min(52vh, 520px);
+    object-fit: contain;
+    object-position: center;
+}
+
+.callout-scheme__caption {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+    text-align: center;
+}
+
 /* Навигация по практическим заданиям темы */
 .topic-task-nav {
     --topic-nav-border: #3d597f;

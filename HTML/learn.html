@@ -212,6 +212,20 @@
                     <ul class="callout__list">
                         {% for line in t.tips %}<li>{{ line }}</li>{% endfor %}
                     </ul>
+                    {% if t.tips_scheme %}
+                    <figure class="callout-scheme">
+                        <button type="button"
+                            class="theory-scheme-zoom-trigger callout-scheme__trigger"
+                            data-scheme-src="{{ url_for('theory_schemes_file', filename=t.tips_scheme.file) }}"
+                            data-scheme-caption="{{ t.tips_scheme.caption }}"
+                            aria-label="Открыть схему крупно: {{ t.tips_scheme.caption }}">
+                            <img class="callout-scheme__img"
+                                src="{{ url_for('theory_schemes_file', filename=t.tips_scheme.file) }}"
+                                alt="{{ t.tips_scheme.caption }}" loading="lazy" decoding="async" />
+                            <span class="theory-scheme-zoom-trigger__hint">Увеличить</span>
+                        </button>
+                    </figure>
+                    {% endif %}
                 </div>
             </section>
 
