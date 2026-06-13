@@ -406,6 +406,15 @@ a.side-nav__link:hover {
     overflow-x: auto;
 }
 
+.practice-panel {
+    margin-bottom: 0;
+    padding: 18px 20px 20px;
+    border-radius: var(--radius-lg);
+    border: 3px solid #3d597f;
+    background: #fff;
+    min-width: 0;
+}
+
 .theory-panel__head {
     margin-bottom: 14px;
 }
@@ -558,6 +567,16 @@ a.side-nav__link:hover {
     box-shadow: none;
 }
 
+.practice-panel .topic-task-nav {
+    margin: 0 0 16px;
+    padding: 0 0 14px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    border-bottom: 1px solid var(--border);
+    box-shadow: none;
+}
+
 .topic-task-nav__label {
     margin: 0 0 12px;
     font-size: 11px;
@@ -637,6 +656,16 @@ a.side-nav__link:hover {
     margin-bottom: 20px;
     padding-top: 8px;
     border-top: 1px solid var(--border);
+}
+
+.practice-panel .task-panel {
+    margin-bottom: 16px;
+    padding-top: 0;
+    border-top: none;
+}
+
+.practice-panel .task-nav {
+    margin-bottom: 0;
 }
 
 .task-panel__title {

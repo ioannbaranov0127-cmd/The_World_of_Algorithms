@@ -229,9 +229,10 @@
                 </div>
             </section>
 
+            <section class="practice-panel" aria-label="Практика">
             {% if topic_tasks_nav|length > 1 %}
             <nav class="topic-task-nav" id="topicTaskNav" aria-label="Практические задания темы">
-                <p class="topic-task-nav__label">Практика · {{ tasks_in_topic_count }} заданий</p>
+                <p class="topic-task-nav__label">Практика</p>
                 <div class="topic-task-nav__track" role="tablist">
                     {% for item in topic_tasks_nav %}
                     <button type="button"
@@ -303,6 +304,7 @@
                 </div>
             </section>
             </div>
+            </section>
         </article>
     </main>
 
