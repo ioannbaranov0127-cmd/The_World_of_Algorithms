@@ -42,7 +42,7 @@ TOPIC: dict = {
         ],
         'scheme_gallery': [
             {
-                'file': 'Схема1_тема_9.svg',
+                'file': 'Схема_тема_9_1.svg',
                 'num': 1,
                 'caption': 'Операции сравнения в Python: как программа получает True или False',
                 'sections_after': [

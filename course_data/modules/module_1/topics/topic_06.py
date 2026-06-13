@@ -42,7 +42,7 @@ TOPIC: dict = {
         ],
         'scheme_gallery': [
             {
-                'file': 'Схема_1_тема_6.svg',
+                'file': 'Схема_тема_6_1.svg',
                 'num': 1,
                 'caption': 'Арифметические операции в Python: как записываются математические действия',
                 'sections_after': [
@@ -110,7 +110,7 @@ TOPIC: dict = {
                 ],
             },
             {
-                'file': 'Схема_2_тема_6.svg',
+                'file': 'Схема_тема_6_2.svg',
                 'num': 2,
                 'caption': 'Формула проекта: grams и kcal_per_100 превращаются в calories',
                 'sections_after': [
