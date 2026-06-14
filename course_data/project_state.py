@@ -37,14 +37,27 @@ def completed_project_stages(progress, module_id: int = 1) -> list[int]:
     return sorted(done)
 
 
-def project_meta_for_task(progress, module_id: int, task_id: int | None = None) -> dict:
-    """Панель прогресса с привязкой к теме текущего задания."""
+def project_meta_for_task(
+    progress,
+    module_id: int,
+    task_id: int | None = None,
+    *,
+    focus_only_project_stage: bool = True,
+) -> dict:
+    """Панель прогресса с привязкой к теме текущего задания.
+
+    Если focus_only_project_stage=True, подсветка текущей версии включается
+    только на project_stage заданиях темы.
+    """
     topic_num: int | None = None
     if task_id is not None:
         from course_data.validators import topic_by_task_id
+        from course_data import TASK_BY_ID
 
         topic = topic_by_task_id(module_id, task_id)
-        if topic:
+        task = TASK_BY_ID.get(task_id) or {}
+        can_focus = (task.get('kind') == 'project_stage') or (not focus_only_project_stage)
+        if topic and can_focus:
             topic_num = topic.get('num')
     return build_project_meta(progress, module_id, topic_num=topic_num)
 
@@ -103,9 +116,6 @@ def build_project_meta(
                 current_num = num
             else:
                 status = 'pending'
-        elif current_num is None:
-            status = 'current'
-            current_num = num
         else:
             status = 'pending'
 

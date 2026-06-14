@@ -665,7 +665,7 @@ a.side-nav__link:hover {
 }
 
 .practice-panel .task-nav {
-    margin-bottom: 0;
+    margin: 20px 0;
 }
 
 .task-panel__title {
@@ -1247,11 +1247,11 @@ a.side-nav__link:hover {
 }
 
 .project-checklist__item--current .project-checklist__head {
-    border-color: rgba(61, 90, 128, 0.45);
+    border-color: #3d5a80;
+    background: #fff;
     box-shadow:
-        0 1px 3px rgba(15, 23, 42, 0.06),
-        0 0 0 1px rgba(61, 90, 128, 0.12),
-        0 4px 14px rgba(61, 90, 128, 0.1);
+        0 0 0 2px rgba(61, 90, 128, 0.42),
+        0 5px 14px rgba(61, 90, 128, 0.14);
 }
 
 .project-checklist__item--current {
@@ -1264,7 +1264,7 @@ a.side-nav__link:hover {
 }
 
 .project-checklist__item--current .project-checklist__head::after {
-    content: '📍 В процессе';
+    content: 'Текущая версия';
     position: absolute;
     top: -8px;
     right: 10px;
@@ -1273,9 +1273,9 @@ a.side-nav__link:hover {
     font-size: 10px;
     font-weight: 600;
     letter-spacing: 0.01em;
-    color: #3d5a80;
-    background: #eef3f8;
-    border: 1px solid rgba(61, 90, 128, 0.2);
+    color: #fff;
+    background: #3d5a80;
+    border: 1px solid #3d5a80;
     pointer-events: none;
     z-index: 3;
 }
@@ -1283,7 +1283,7 @@ a.side-nav__link:hover {
 .project-checklist__item--current .project-checklist__title,
 .project-checklist__item--current .project-checklist__ver {
     color: var(--text);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 @keyframes project-current-soft-pulse {

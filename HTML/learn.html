@@ -43,7 +43,9 @@
   'tasksInTopicCount': tasks_in_topic_count,
   'tasksTotalInModule': tasks_total_in_module,
   'currentTopicId': current_topic.id if current_topic else '',
+  'currentTopicNum': current_topic_num,
   'isProjectStage': is_project_stage,
+  'isProjectStageLocked': project_stage_is_locked,
   'projectCodeServer': project_code,
   'projectMeta': project_meta,
   'topicTasks': topic_tasks_nav,
@@ -253,7 +255,13 @@
             <div id="learn-dynamic-content">
             <section class="task-panel">
                 <h2 class="task-panel__title">{% if is_project_stage %}🚀 Этап разработки проекта{% else %}Текущее тренировочное задание{% endif %}</h2>
-                {% if is_project_stage and project_spec %}
+                {% if is_project_stage and project_stage_lock_message %}
+                <div class="callout callout--tips">
+                    <p><strong>🔒 Релиз временно закрыт</strong></p>
+                    <p>{{ project_stage_lock_message }}</p>
+                    <p><strong>Что делать:</strong> откройте предыдущее проектное задание, завершите его и вернитесь к этому релизу.</p>
+                </div>
+                {% elif is_project_stage and project_spec %}
                 <div class="project-stage-spec callout callout--tips">
                     {% if project_spec.tz %}<p><strong>Техническое задание.</strong> {{ project_spec.tz }}</p>{% endif %}
                     {% if project_spec.requirements %}
@@ -265,13 +273,17 @@
                     {% if project_spec.expected_result %}<p><strong>Ожидаемый результат:</strong> {{ project_spec.expected_result }}</p>{% endif %}
                 </div>
                 {% endif %}
+                {% if not (is_project_stage and project_stage_lock_message) %}
                 <p class="task-panel__text"><strong>{{ current_task.text }}</strong></p>
                 <button type="button" class="btn btn-ghost" id="hintBtn">Показать подсказку</button>
+                {% else %}
+                <p class="task-panel__text"><strong>Задание этого релиза откроется автоматически после завершения предыдущей версии проекта.</strong></p>
+                {% endif %}
             </section>
 
-            <div id="interactiveTaskMount" class="interactive-task-mount {% if task_kind == 'code' %}is-hidden{% endif %}" aria-live="polite"></div>
+            <div id="interactiveTaskMount" class="interactive-task-mount {% if task_kind == 'code' or (is_project_stage and project_stage_lock_message) %}is-hidden{% endif %}" aria-live="polite"></div>
 
-            <div class="code-workbench {% if task_kind != 'code' %}is-hidden{% endif %}">
+            <div class="code-workbench {% if task_kind != 'code' or (is_project_stage and project_stage_lock_message) %}is-hidden{% endif %}">
                 <div class="code-workbench__toolbar">
                     <span class="code-workbench__dot"></span>
                     <span class="code-workbench__dot"></span>
@@ -294,7 +306,7 @@
                 <button type="button" class="btn btn-primary" id="nextTaskNavBtn">Далее <span class="task-nav__arrow" aria-hidden="true">→</span></button>
             </div>
 
-            <section class="result-panel edu-console-panel {% if task_kind != 'code' %}is-hidden{% endif %}" id="result" aria-live="polite">
+            <section class="result-panel edu-console-panel {% if task_kind != 'code' or (is_project_stage and project_stage_lock_message) %}is-hidden{% endif %}" id="result" aria-live="polite">
                 <div class="edu-console-panel__head">
                     <span class="result-panel__label">Консоль</span>
                     <span class="edu-console__status" id="consoleStatus"></span>
@@ -383,5 +395,5 @@
 </div>
 
 <script type="module" src="{{ url_for('static', filename='js/code-editor.bundle.js') }}"></script>
-<script defer src="{{ url_for('static', filename='js/learn.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/learn.js', v='project-highlight-4') }}"></script>
 {% endblock %}

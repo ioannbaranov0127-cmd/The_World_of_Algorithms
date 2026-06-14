@@ -88,6 +88,7 @@
                 if (elCfg && newCfgEl) {
                     elCfg.textContent = newCfgEl.textContent;
                     cfg = JSON.parse(elCfg.textContent);
+                    if (cfg.projectMeta) applyProjectMeta(cfg.projectMeta);
                 }
                 bindLearnTaskUi();
                 updateTopicTaskNav();
@@ -416,10 +417,30 @@
 
         var list = document.querySelector('[data-project-checklist]');
         if (list && meta.checklist && meta.checklist.length) {
+            var shouldHighlightProjectStage = !!(
+                cfg &&
+                cfg.isProjectStage &&
+                !cfg.isProjectStageLocked &&
+                cfg.currentTopicNum != null
+            );
+            var targetStage = shouldHighlightProjectStage ? String(cfg.currentTopicNum) : null;
+
             list.innerHTML = '';
             for (var i = 0; i < meta.checklist.length; i++) {
-                list.appendChild(renderProjectChecklistItem(meta.checklist[i]));
+                var item = Object.assign({}, meta.checklist[i]);
+                var itemStage = String(item.num);
+                if (shouldHighlightProjectStage) {
+                    if (itemStage === targetStage && item.status !== 'done') {
+                        item.status = 'current';
+                    } else if (item.status === 'current') {
+                        item.status = 'pending';
+                    }
+                } else if (item.status === 'current') {
+                    item.status = 'pending';
+                }
+                list.appendChild(renderProjectChecklistItem(item));
             }
+
             var cur = list.querySelector('.project-checklist__item--current');
             if (cur) {
                 cur.classList.add('project-checklist__item--pulse');

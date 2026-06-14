@@ -8,6 +8,7 @@ from flask import Flask, jsonify, redirect, render_template, request, send_from_
 from code_runner import run_python
 from code_runner.interactive_session import InteractiveSession
 from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
+from course_data.project import PROJECT_LINE
 from course_data.project_state import build_project_meta, project_meta_for_task
 from course_data import (
     ACHIEVEMENTS,
@@ -24,6 +25,11 @@ from course_data import (
 
 app = Flask(__name__, static_folder='CSS', template_folder='HTML')
 app.secret_key = os.environ.get('FLASK_SECRET_KEY') or secrets.token_hex(32)
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+
+# One-line toggle: True = нельзя сдавать project_stage без предыдущей версии.
+ENFORCE_PROJECT_STAGE_PREREQUISITE = True
 
 
 @app.route('/health')
@@ -275,12 +281,15 @@ def learn():
         0,
     ) if current_topic else 0
 
+    is_project_stage = current_task.get('kind') == 'project_stage'
+    project_stage_lock_message = _project_stage_lock_message(progress, current_task['id'])
+    project_stage_is_locked = bool(project_stage_lock_message)
     task_done = current_task['id'] in progress.completed_tasks
     lm = level_meta(progress.total_xp)
     topic_num = current_topic.get('num') if current_topic else None
-    project_meta = build_project_meta(progress, current_module, topic_num=topic_num)
+    focused_project_topic = topic_num if is_project_stage and not project_stage_is_locked else None
+    project_meta = build_project_meta(progress, current_module, topic_num=focused_project_topic)
     saved_project = progress.project_code.get(current_module, '')
-    is_project_stage = current_task.get('kind') == 'project_stage'
     project_spec = current_task.get('project_spec') if is_project_stage else None
     topic_tasks_nav = [
         {'id': t['id'], 'index': i, 'done': t['id'] in progress.completed_tasks}
@@ -293,6 +302,7 @@ def learn():
         current_module=module,
         current_module_num=current_module,
         current_topic=current_topic,
+        current_topic_num=topic_num,
         topic_index=topic_index,
         topics_count=len(topics),
         task_in_topic_index=task_ord_in_topic,
@@ -312,6 +322,8 @@ def learn():
         project_code=saved_project,
         is_project_stage=is_project_stage,
         project_spec=project_spec,
+        project_stage_lock_message=project_stage_lock_message,
+        project_stage_is_locked=project_stage_is_locked,
         topic_tasks_nav=topic_tasks_nav,
     )
 
@@ -321,6 +333,69 @@ def _run_with_timing(code: str, stdin: str, *, echo_stdin: bool = False):
     result = run_python(code, stdin=stdin, echo_stdin=echo_stdin)
     duration_ms = round((time.perf_counter() - t0) * 1000.0, 2)
     return result, duration_ms
+
+
+def _topic_project_stage_task_id(topic: dict) -> int | None:
+    for t in topic.get('tasks') or []:
+        if t.get('kind') == 'project_stage':
+            return t.get('id')
+    return None
+
+
+def _project_stage_prerequisite(task_id: int) -> dict | None:
+    """Возвращает обязательный предыдущий этап для текущего project_stage."""
+    task = TASK_BY_ID.get(task_id) or {}
+    if task.get('kind') != 'project_stage':
+        return None
+
+    module_id = None
+    for mid, mod in LESSONS.items():
+        if any((t.get('id') == task_id) for t in (mod.get('tasks') or [])):
+            module_id = mid
+            break
+    if module_id is None:
+        return None
+
+    topic = topic_by_task_id(module_id, task_id)
+    if not topic:
+        return None
+    current_num = topic.get('num')
+    if not isinstance(current_num, int) or current_num <= 1:
+        return None
+
+    prev_num = current_num - 1
+    prev_topic = next(
+        (t for t in (LESSONS[module_id].get('topics') or []) if t.get('num') == prev_num),
+        None,
+    )
+    if not prev_topic:
+        return None
+    prev_stage_id = _topic_project_stage_task_id(prev_topic)
+    if prev_stage_id is None:
+        return None
+
+    prev_ver = (PROJECT_LINE.get(prev_num) or {}).get('version_label', f'{prev_num / 10:.1f}')
+    cur_ver = (PROJECT_LINE.get(current_num) or {}).get('version_label', f'{current_num / 10:.1f}')
+    return {
+        'required_task_id': prev_stage_id,
+        'required_version': prev_ver,
+        'current_version': cur_ver,
+    }
+
+
+def _project_stage_lock_message(progress: UserProgress, task_id: int) -> str | None:
+    if not ENFORCE_PROJECT_STAGE_PREREQUISITE:
+        return None
+    req = _project_stage_prerequisite(task_id)
+    if not req:
+        return None
+    if req['required_task_id'] in set(progress.completed_tasks):
+        return None
+    return (
+        f'Перед релизом {req["current_version"]} завершите предыдущую версию '
+        f'{req["required_version"]}. Откройте project_stage прошлой темы и сдайте его — '
+        'после этого этот этап разблокируется автоматически.'
+    )
 
 
 def _cleanup_interactive_sessions() -> None:
@@ -473,6 +548,14 @@ def check_code():
     if task.get('type', 'code') != 'code':
         return jsonify({'error': 'Для этого задания используйте кнопку «Проверить» под блоком задания, а не проверку кода.'}), 400
 
+    lock_message = _project_stage_lock_message(progress, task_id)
+    if lock_message:
+        return jsonify({
+            'success': False,
+            'error': lock_message,
+            'expected': 'Сначала завершите предыдущую версию проекта.',
+        }), 400
+
     expected = task['expected']
 
     if task_id in progress.completed_tasks:
@@ -560,6 +643,13 @@ def check_task():
         return jsonify({'error': 'Задание не найдено'}), 400
     if task.get('type', 'code') == 'code':
         return jsonify({'error': 'Для этого задания используйте проверку кода.'}), 400
+
+    lock_message = _project_stage_lock_message(progress, task_id)
+    if lock_message:
+        return jsonify({
+            'success': False,
+            'message': lock_message,
+        }), 400
 
     if task_id in progress.completed_tasks:
         return jsonify({
@@ -800,6 +890,16 @@ def load_module(module_id):
 def api_session():
     progress = get_user_progress()
     task_id = request.args.get('task_id', type=int)
+    if task_id is None:
+        tasks = LESSONS.get(progress.current_module, {}).get('tasks') or []
+        idx = progress.current_task_index
+        if 0 <= idx < len(tasks):
+            task_id = tasks[idx].get('id')
+    task = TASK_BY_ID.get(task_id) if task_id is not None else None
+    topic = topic_by_task_id(progress.current_module, task_id) if task_id is not None else None
+    is_project_stage = bool(task and task.get('kind') == 'project_stage')
+    is_locked = bool(_project_stage_lock_message(progress, task_id)) if task_id is not None else False
+    focus_topic_num = topic.get('num') if (topic and is_project_stage and not is_locked) else None
     payload = {
         'success': True,
         'total_xp': progress.total_xp,
@@ -808,9 +908,7 @@ def api_session():
         'module_progress': progress.get_module_progress(progress.current_module),
         'current_module': progress.current_module,
         'level': level_meta(progress.total_xp),
-        'project_meta': project_meta_for_task(
-            progress, progress.current_module, task_id
-        ),
+        'project_meta': build_project_meta(progress, progress.current_module, topic_num=focus_topic_num),
     }
     if task_id is not None:
         payload['task_completed'] = task_id in progress.completed_tasks
