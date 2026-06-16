@@ -133,6 +133,37 @@ def build_modules_stats(progress):
     ]
 
 
+def build_sidebar_modules(progress, current_module_num, current_topic=None):
+    current_topic_id = current_topic['id'] if current_topic else None
+    out = []
+    for mid in sorted(LESSONS.keys()):
+        mod = LESSONS[mid]
+        tasks = mod.get('tasks') or []
+        topics_out = []
+        for topic in mod.get('topics') or []:
+            if topic.get('draft'):
+                continue
+            topic_tasks = topic.get('tasks') or []
+            if not topic_tasks:
+                continue
+            topics_out.append({
+                'id': topic['id'],
+                'title': topic['title'],
+                'first_task_id': topic_tasks[0]['id'],
+                'is_active': mid == current_module_num and topic['id'] == current_topic_id,
+            })
+        out.append({
+            'id': mid,
+            'progress': progress.get_module_progress(mid),
+            'completed_tasks': sum(1 for t in tasks if t['id'] in progress.completed_tasks),
+            'total_tasks': len(tasks),
+            'is_current': mid == current_module_num,
+            'expanded': mid == current_module_num,
+            'topics': topics_out,
+        })
+    return out
+
+
 def level_meta(total_xp):
     level = total_xp // XP_PER_LEVEL + 1
     in_level = total_xp % XP_PER_LEVEL
@@ -282,12 +313,13 @@ def learn():
     ) if current_topic else 0
 
     is_project_stage = current_task.get('kind') == 'project_stage'
+    is_project_release_task = current_task.get('kind') in ('project_stage', 'project_step')
     project_stage_lock_message = _project_stage_lock_message(progress, current_task['id'])
     project_stage_is_locked = bool(project_stage_lock_message)
     task_done = current_task['id'] in progress.completed_tasks
     lm = level_meta(progress.total_xp)
     topic_num = current_topic.get('num') if current_topic else None
-    focused_project_topic = topic_num if is_project_stage and not project_stage_is_locked else None
+    focused_project_topic = topic_num if is_project_release_task and not project_stage_is_locked else None
     project_meta = build_project_meta(progress, current_module, topic_num=focused_project_topic)
     saved_project = progress.project_code.get(current_module, '')
     project_spec = current_task.get('project_spec') if is_project_stage else None
@@ -317,6 +349,7 @@ def learn():
         level_info=lm,
         safe_task=task_client_payload(current_task),
         topics=topics,
+        sidebar_modules=build_sidebar_modules(progress, current_module, current_topic),
         default_code_placeholder=DEFAULT_CODE_EDITOR_PLACEHOLDER,
         project_meta=project_meta,
         project_code=saved_project,
@@ -898,8 +931,9 @@ def api_session():
     task = TASK_BY_ID.get(task_id) if task_id is not None else None
     topic = topic_by_task_id(progress.current_module, task_id) if task_id is not None else None
     is_project_stage = bool(task and task.get('kind') == 'project_stage')
+    is_project_release_task = bool(task and task.get('kind') in ('project_stage', 'project_step'))
     is_locked = bool(_project_stage_lock_message(progress, task_id)) if task_id is not None else False
-    focus_topic_num = topic.get('num') if (topic and is_project_stage and not is_locked) else None
+    focus_topic_num = topic.get('num') if (topic and is_project_release_task and not is_locked) else None
     payload = {
         'success': True,
         'total_xp': progress.total_xp,

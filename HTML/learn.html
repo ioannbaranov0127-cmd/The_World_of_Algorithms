@@ -62,35 +62,43 @@
             <span class="side-nav__link side-nav__link--muted">Профиль</span>
         </nav>
 
-        <div class="card card--soft progress-card">
-            <div class="progress-card__label">Модуль {{ current_module_num }}</div>
-            <div class="progress-card__percent">{{ modules_stats[current_module_num - 1].progress }}%</div>
-            <div class="duo-progress sidebar-main-progress" role="progressbar"
-                aria-valuenow="{{ modules_stats[current_module_num - 1].progress }}" aria-valuemin="0"
-                aria-valuemax="100">
-                <div class="duo-progress__fill" style="width: {{ modules_stats[current_module_num - 1].progress }}%">
-                </div>
-            </div>
-            <div class="progress-card__stats">
-                <span><span data-completed-count>{{ completed_tasks }} / {{ total_tasks }}</span> заданий</span>
-                <span><span data-total-xp>{{ user.total_xp }}</span> XP</span>
-            </div>
+        <div class="sidebar-modules" data-current-module="{{ current_module_num }}">
+            {% for mod in sidebar_modules %}
+            <section class="sidebar-module{% if not mod.expanded %} sidebar-module--collapsed{% endif %}"
+                data-module-id="{{ mod.id }}">
+                <button type="button" class="sidebar-module__toggle card card--soft progress-card"
+                    aria-expanded="{{ 'true' if mod.expanded else 'false' }}"
+                    aria-controls="sidebarTopics{{ mod.id }}">
+                    <div class="progress-card__label">Модуль {{ mod.id }}</div>
+                    <div class="progress-card__percent">{{ mod.progress }}%</div>
+                    <div class="duo-progress sidebar-main-progress" role="progressbar"
+                        aria-valuenow="{{ mod.progress }}" aria-valuemin="0" aria-valuemax="100">
+                        <div class="duo-progress__fill" style="width: {{ mod.progress }}%"></div>
+                    </div>
+                    <div class="progress-card__stats">
+                        <span><span {% if mod.is_current %}data-completed-count{% endif %}>{{ mod.completed_tasks }} / {{ mod.total_tasks }}</span> заданий</span>
+                        {% if mod.is_current %}
+                        <span><span data-total-xp>{{ user.total_xp }}</span> XP</span>
+                        {% endif %}
+                    </div>
+                </button>
+                {% if mod.topics %}
+                <nav class="topic-sidebar-nav sidebar-module__topics" id="sidebarTopics{{ mod.id }}"
+                    aria-label="Темы модуля {{ mod.id }}">
+                    <div class="topic-sidebar-nav__label">Темы модуля</div>
+                    <ul class="topic-sidebar-nav__list">
+                        {% for topic in mod.topics %}
+                        <li class="topic-sidebar-nav__item">
+                            <a class="topic-sidebar-nav__link {% if topic.is_active %}topic-sidebar-nav__link--active{% endif %}"
+                                href="{{ url_for('learn', task_id=topic.first_task_id) }}">{{ topic.title }}</a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </section>
+            {% endfor %}
         </div>
-
-        {% if topics %}
-        <nav class="topic-sidebar-nav" aria-label="Темы текущего модуля">
-            <div class="topic-sidebar-nav__label">Темы модуля</div>
-            <ul class="topic-sidebar-nav__list">
-                {% for topic in topics %}
-                {% set first_task = topic.tasks[0] %}
-                <li class="topic-sidebar-nav__item">
-                    <a class="topic-sidebar-nav__link {% if current_topic and topic.id == current_topic.id %}topic-sidebar-nav__link--active{% endif %}"
-                        href="{{ url_for('learn', task_id=first_task.id) }}">{{ topic.title }}</a>
-                </li>
-                {% endfor %}
-            </ul>
-        </nav>
-        {% endif %}
     </aside>
 
     <main class="main-area">
@@ -395,5 +403,5 @@
 </div>
 
 <script type="module" src="{{ url_for('static', filename='js/code-editor.bundle.js') }}"></script>
-<script defer src="{{ url_for('static', filename='js/learn.js', v='project-highlight-4') }}"></script>
+<script defer src="{{ url_for('static', filename='js/learn.js', v='sidebars-scroll-1') }}"></script>
 {% endblock %}

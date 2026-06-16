@@ -18,12 +18,22 @@
 
     <main class="home-main">
         <section class="home-hero card card--elevated">
-            <p class="home-kicker">Интерактивный тренажёр</p>
-            <h1 class="home-title">Учитесь Python на практике</h1>
-            <p class="home-lead">
-                Теория, задания с автопроверкой и сохранение прогресса в сессии.
-                От первого <code>print</code> до циклов <code>for</code> и <code>while</code>.
-            </p>
+            <div class="home-hero__content">
+                <p class="home-kicker">Интерактивный тренажёр</p>
+                <h1 class="home-title">Учитесь Python на практике — создайте ваш проект «Калькулятор калорий»</h1>
+                <p class="home-lead">
+                    Теория, задания с автопроверкой и сохранение прогресса в сессии.
+                    От первого <code>print</code> до циклов <code>for</code> и <code>while</code>.
+                </p>
+            </div>
+            <div class="home-hero__media">
+                <img class="home-hero__icon"
+                    src="{{ url_for('theory_schemes_file', filename='Иконка.svg') }}"
+                    alt=""
+                    aria-hidden="true"
+                    width="180"
+                    height="180">
+            </div>
         </section>
 
         <section class="home-continue">

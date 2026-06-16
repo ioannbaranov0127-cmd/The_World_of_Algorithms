@@ -30,11 +30,11 @@ def _module_2() -> dict:
     topics = get_module_2_topics()
     return {
         'id': 2,
-        'title': 'Списки и развитие проекта',
+        'title': 'Решение задач и развитие проекта',
         'icon': '📋',
         'description': (
-            f'Развитие «{COURSE["project_name"]}» после версии 1.0: повторение, каталог продуктов '
-            f'в списках и журнал порций (append, remove, len).'
+            f'Развитие «{COURSE["project_name"]}» после версии 1.0: for, списки, словари '
+            f'и функции для версии 2.0.'
         ),
         'topics': topics,
     }

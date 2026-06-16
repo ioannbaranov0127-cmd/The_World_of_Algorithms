@@ -8,16 +8,25 @@
     var interactivePollTimer = null;
     var interactivePollInFlight = false;
     var LEARN_SCROLL_KEY = 'learnScrollToTop';
+    var LEARN_PAGE_SCROLL_KEY = 'learn-page-scroll-top';
+    var learnPageScrollTimer = null;
 
     function markLearnScrollToTop() {
         try {
             sessionStorage.setItem(LEARN_SCROLL_KEY, '1');
+            localStorage.removeItem(LEARN_PAGE_SCROLL_KEY);
         } catch (e) {}
     }
 
-    function scrollLearnPageToTopSmooth() {
+    function scrollLearnPageToTop() {
         try {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo(0, 0);
+            requestAnimationFrame(function () {
+                window.scrollTo(0, 0);
+            });
+            setTimeout(function () {
+                window.scrollTo(0, 0);
+            }, 80);
         } catch (e) {
             window.scrollTo(0, 0);
         }
@@ -27,10 +36,44 @@
         try {
             if (sessionStorage.getItem(LEARN_SCROLL_KEY)) {
                 sessionStorage.removeItem(LEARN_SCROLL_KEY);
+                localStorage.removeItem(LEARN_PAGE_SCROLL_KEY);
                 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
-                scrollLearnPageToTopSmooth();
+                scrollLearnPageToTop();
+                return true;
             }
         } catch (e) {}
+        return false;
+    }
+
+    function saveLearnPageScroll() {
+        try {
+            if (sessionStorage.getItem(LEARN_SCROLL_KEY)) return;
+            localStorage.setItem(LEARN_PAGE_SCROLL_KEY, String(window.scrollY || 0));
+        } catch (e) {}
+    }
+
+    function restoreLearnPageScroll() {
+        try {
+            var raw = localStorage.getItem(LEARN_PAGE_SCROLL_KEY);
+            if (raw == null) return;
+            var value = parseInt(raw, 10);
+            if (Number.isNaN(value)) return;
+            if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+            requestAnimationFrame(function () {
+                window.scrollTo(0, value);
+            });
+        } catch (e) {}
+    }
+
+    function initLearnPageScrollMemory(skipRestore) {
+        if (!skipRestore) restoreLearnPageScroll();
+        if (window._learnPageScrollMemoryBound) return;
+        window._learnPageScrollMemoryBound = true;
+        window.addEventListener('scroll', function () {
+            clearTimeout(learnPageScrollTimer);
+            learnPageScrollTimer = setTimeout(saveLearnPageScroll, 120);
+        }, { passive: true });
+        window.addEventListener('beforeunload', saveLearnPageScroll);
     }
 
     function reloadLearnPage(scrollOnTopicChange) {
@@ -279,8 +322,119 @@
         });
     }
 
+    var SIDEBAR_MODULES_KEY = 'learn-sidebar-modules-expanded';
+    var LEFT_SIDEBAR_SCROLL_KEY = 'learn-left-sidebar-scroll-top';
+    var RIGHT_SIDEBAR_SCROLL_KEY = 'learn-right-sidebar-scroll-top';
+    var leftSidebarScrollTimer = null;
+    var rightSidebarScrollTimer = null;
+
+    function readSidebarModulesState() {
+        try {
+            var raw = localStorage.getItem(SIDEBAR_MODULES_KEY);
+            if (!raw) return null;
+            var parsed = JSON.parse(raw);
+            return parsed && typeof parsed === 'object' ? parsed : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function writeSidebarModulesState(state) {
+        try {
+            localStorage.setItem(SIDEBAR_MODULES_KEY, JSON.stringify(state));
+        } catch (e) {}
+    }
+
+    function collectSidebarModulesStateFromDom() {
+        var state = {};
+        document.querySelectorAll('.sidebar-module[data-module-id]').forEach(function (section) {
+            state[section.dataset.moduleId] = !section.classList.contains('sidebar-module--collapsed');
+        });
+        return state;
+    }
+
+    function applySidebarModulesState(state) {
+        if (!state) return;
+        document.querySelectorAll('.sidebar-module[data-module-id]').forEach(function (section) {
+            var id = section.dataset.moduleId;
+            if (!Object.prototype.hasOwnProperty.call(state, id)) return;
+            var expanded = !!state[id];
+            section.classList.toggle('sidebar-module--collapsed', !expanded);
+            var btn = section.querySelector('.sidebar-module__toggle');
+            if (btn) btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        });
+    }
+
+    function saveSidebarScroll(sidebar, key) {
+        if (!sidebar) return;
+        try {
+            localStorage.setItem(key, String(sidebar.scrollTop || 0));
+        } catch (e) {}
+    }
+
+    function restoreSidebarScroll(sidebar, key) {
+        if (!sidebar) return;
+        try {
+            var raw = localStorage.getItem(key);
+            if (raw == null) return;
+            var value = parseInt(raw, 10);
+            if (Number.isNaN(value)) return;
+            requestAnimationFrame(function () {
+                sidebar.scrollTop = value;
+            });
+        } catch (e) {}
+    }
+
+    function initSidebarScrollMemory(sidebarId, key, timerName) {
+        var sidebar = document.getElementById(sidebarId);
+        if (!sidebar || sidebar.dataset.scrollMemoryBound) return;
+        sidebar.dataset.scrollMemoryBound = '1';
+
+        restoreSidebarScroll(sidebar, key);
+        sidebar.addEventListener('scroll', function () {
+            if (timerName === 'right') {
+                clearTimeout(rightSidebarScrollTimer);
+                rightSidebarScrollTimer = setTimeout(function () {
+                    saveSidebarScroll(sidebar, key);
+                }, 120);
+                return;
+            }
+            clearTimeout(leftSidebarScrollTimer);
+            leftSidebarScrollTimer = setTimeout(function () {
+                saveSidebarScroll(sidebar, key);
+            }, 120);
+        });
+        window.addEventListener('beforeunload', function () {
+            saveSidebarScroll(sidebar, key);
+        });
+    }
+
+    function initSidebarsScrollMemory() {
+        initSidebarScrollMemory('learnSidebarLeft', LEFT_SIDEBAR_SCROLL_KEY, 'left');
+        initSidebarScrollMemory('learnSidebarRight', RIGHT_SIDEBAR_SCROLL_KEY, 'right');
+    }
+
+    function initSidebarModules() {
+        var saved = readSidebarModulesState();
+        if (saved) applySidebarModulesState(saved);
+
+        document.querySelectorAll('.sidebar-module__toggle').forEach(function (btn) {
+            if (btn.dataset.bound) return;
+            btn.dataset.bound = '1';
+            btn.addEventListener('click', function () {
+                var section = btn.closest('.sidebar-module');
+                if (!section) return;
+                var collapsed = section.classList.toggle('sidebar-module--collapsed');
+                btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                writeSidebarModulesState(collectSidebarModulesStateFromDom());
+                saveSidebarScroll(document.getElementById('learnSidebarLeft'), LEFT_SIDEBAR_SCROLL_KEY);
+            });
+        });
+    }
+
     function initLearnNavigationScroll() {
-        applyLearnScrollOnLoad();
+        var forcedTop = applyLearnScrollOnLoad();
+        initLearnPageScrollMemory(forcedTop);
 
         document.querySelectorAll('.topic-sidebar-nav__link[href]').forEach(function (link) {
             link.addEventListener('click', function () {
@@ -511,10 +665,17 @@
         if (xpSide) xpSide.textContent = String(d.total_xp);
         var doneEl = document.querySelector('[data-completed-count]');
         if (doneEl) doneEl.textContent = d.completed_tasks + ' / ' + d.total_tasks;
-        var pp = document.querySelector('.sidebar-left .progress-card__percent');
-        var pf = document.querySelector('.sidebar-left .sidebar-main-progress .duo-progress__fill');
-        if (pp) pp.textContent = d.module_progress + '%';
-        if (pf) pf.style.width = d.module_progress + '%';
+        var modulesRoot = document.querySelector('.sidebar-modules');
+        var mid = modulesRoot ? modulesRoot.dataset.currentModule : null;
+        if (mid) {
+            var section = document.querySelector('.sidebar-module[data-module-id="' + mid + '"]');
+            if (section) {
+                var pp = section.querySelector('.progress-card__percent');
+                var pf = section.querySelector('.sidebar-main-progress .duo-progress__fill');
+                if (pp) pp.textContent = d.module_progress + '%';
+                if (pf) pf.style.width = d.module_progress + '%';
+            }
+        }
         if (d.level) applyLevelUi(d.level);
         if (d.project_meta) applyProjectMeta(d.project_meta);
     }
@@ -1942,6 +2103,8 @@
     }
 
     function init() {
+        initSidebarModules();
+        initSidebarsScrollMemory();
         initLearnNavigationScroll();
 
         var elCfg = document.getElementById('learn-config');
