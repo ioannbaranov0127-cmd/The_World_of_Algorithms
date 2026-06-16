@@ -124,6 +124,7 @@ def build_modules_stats(progress):
             'id': i,
             'title': LESSONS[i]['title'],
             'icon': LESSONS[i]['icon'],
+            'icon_file': LESSONS[i].get('icon_file'),
             'progress': progress.get_module_progress(i),
             'is_locked': bool(LESSONS[i].get('stub')),
             'is_stub': bool(LESSONS[i].get('stub')),
@@ -188,6 +189,7 @@ def next_task_preview(progress):
         return {
             'module_title': mod['title'],
             'module_icon': mod['icon'],
+            'module_icon_file': mod.get('icon_file'),
             'text': 'Откройте модуль в разделе заданий.',
             'task_id': None,
         }
@@ -197,6 +199,7 @@ def next_task_preview(progress):
     return {
         'module_title': mod['title'],
         'module_icon': mod['icon'],
+        'module_icon_file': mod.get('icon_file'),
         'text': t['text'],
         'task_id': t['id'],
     }

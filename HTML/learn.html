@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from 'base.html' import module_icon %}
 {% block title %}Обучение — Мир алгоритмов: проектируем на Python{% endblock %}
 {% block body_class %}page-learn{% endblock %}
 
@@ -114,7 +115,7 @@
         </div>
         <article class="card task-shell">
             <header class="task-head">
-                <div class="task-head__icon">{{ current_module.icon }}</div>
+                <div class="task-head__icon">{{ module_icon(current_module.icon, current_module.get('icon_file'), 'task-head__icon-img', 40) }}</div>
                 <div>
                     <h1 class="task-head__title">{% if current_topic %}{{ current_topic.title }}{% else %}{{ current_module.title }}{% endif %}</h1>
                     <p class="task-head__desc">{% if current_topic and current_topic.summary %}{{ current_topic.summary }}{% else %}{{ current_module.description }}{% endif %}</p>

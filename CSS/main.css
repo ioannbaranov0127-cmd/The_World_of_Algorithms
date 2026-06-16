@@ -367,6 +367,29 @@ a.side-nav__link:hover {
 .task-head__icon {
     font-size: 40px;
     line-height: 1;
+    flex-shrink: 0;
+}
+
+.task-head__icon-img,
+.continue-card__icon-img,
+.module-tile__icon-img {
+    display: block;
+    object-fit: contain;
+}
+
+.task-head__icon-img {
+    width: 40px;
+    height: 40px;
+}
+
+.continue-card__icon-img {
+    width: 36px;
+    height: 36px;
+}
+
+.module-tile__icon-img {
+    width: 24px;
+    height: 24px;
 }
 
 .task-head__title {
@@ -1863,6 +1886,19 @@ a.side-nav__link:hover {
     justify-content: center;
 }
 
+.home-hero__icon-link {
+    display: block;
+    text-decoration: none;
+    border-radius: 12px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.home-hero__icon-link:hover {
+    text-decoration: none;
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+
 .home-hero__icon {
     display: block;
     width: 180px;
@@ -2192,16 +2228,18 @@ a.side-nav__link:hover {
 
     .home-hero {
         flex-direction: column;
-        align-items: stretch;
+        align-items: center;
         padding: 24px 20px;
-        gap: 24px;
+        gap: 20px;
     }
 
     .home-hero__content {
         width: 100%;
+        text-align: center;
     }
 
     .home-hero__media {
+        order: -1;
         width: 100%;
         justify-content: center;
     }

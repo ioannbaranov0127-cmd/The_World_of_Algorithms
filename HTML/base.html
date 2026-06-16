@@ -1,3 +1,14 @@
+{% macro module_icon(icon, icon_file=none, img_class='module-icon-img', size=40) -%}
+{% if icon_file -%}
+<img class="{{ img_class }}"
+    src="{{ url_for('theory_schemes_file', filename=icon_file) }}"
+    alt=""
+    width="{{ size }}"
+    height="{{ size }}">
+{%- else -%}
+{{ icon }}
+{%- endif %}
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="ru">
 <head>

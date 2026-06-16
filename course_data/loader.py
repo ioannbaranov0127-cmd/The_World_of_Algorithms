@@ -18,6 +18,7 @@ def _module_1() -> dict:
         'id': 1,
         'title': 'Основы программирования на Python',
         'icon': '🍽️',
+        'icon_file': 'Иконка_модуль_1.svg',
         'description': (
             f'Курс «{COURSE["title"]}»: проект «{COURSE["project_name"]}» '
             f'растёт от темы к теме. Опубликовано тем: {published} из {total}.'
@@ -32,6 +33,7 @@ def _module_2() -> dict:
         'id': 2,
         'title': 'Решение задач и развитие проекта',
         'icon': '📋',
+        'icon_file': 'Иконка_модуль_2_1.svg',
         'description': (
             f'Развитие «{COURSE["project_name"]}» после версии 1.0: for, списки, словари '
             f'и функции для версии 2.0.'
