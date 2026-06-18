@@ -8,12 +8,29 @@
     <div class="learn-overlay-backdrop" id="learnNavBackdrop" aria-hidden="true"></div>
     <aside class="sidebar sidebar-left" id="learnSidebarLeft">
         <button type="button" class="learn-sidebar-close" id="learnCloseLeft" aria-label="Закрыть меню">×</button>
-        <a class="brand-mini" href="{{ url_for('home') }}" title="Мир алгоритмов: проектируем на Python">Мир алгоритмов: проектируем на Python</a>
+        <div class="brand-mini">Мир алгоритмов: проектируем на Python</div>
         <nav class="side-nav" aria-label="Разделы">
-            <a class="side-nav__link" href="{{ url_for('home') }}">Главная</a>
-            <a class="side-nav__link side-nav__link--active" href="{{ url_for('learn') }}">Задания</a>
+            <a class="side-nav__link side-nav__link--active" href="{{ url_for('home') }}">Главная</a>
             <span class="side-nav__link side-nav__link--muted">Профиль</span>
         </nav>
+
+        <div class="card card--soft course-grade course-grade--{{ course_grade.state }}" data-course-grade-card>
+            <div class="course-grade__value" data-course-grade-label>{{ course_grade.label }}</div>
+            <div class="course-grade__scale" role="progressbar"
+                aria-valuenow="{{ course_grade.percent }}"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-label="Прогресс до оценки">
+                <div class="course-grade__track" aria-hidden="true">
+                    <span class="course-grade__segment course-grade__segment--pending"></span>
+                    <span class="course-grade__segment course-grade__segment--satisfactory"></span>
+                    <span class="course-grade__segment course-grade__segment--good"></span>
+                    <span class="course-grade__segment course-grade__segment--excellent"></span>
+                    <span class="course-grade__fill" data-course-grade-fill style="width: {{ course_grade.percent }}%"></span>
+                </div>
+                <span class="course-grade__marker" data-course-grade-marker style="left: {{ course_grade.percent }}%"></span>
+            </div>
+        </div>
 
         <div class="card card--soft progress-card">
             <div class="progress-card__label">Модуль {{ current_module_num }}</div>
@@ -26,7 +43,6 @@
             </div>
             <div class="progress-card__stats">
                 <span><span data-completed-count>{{ completed_tasks }} / {{ total_tasks }}</span> заданий</span>
-                <span><span data-total-xp>{{ user.total_xp }}</span> XP</span>
             </div>
         </div>
     </aside>
@@ -64,22 +80,6 @@
 
     <aside class="sidebar sidebar-right" id="learnSidebarRight">
         <button type="button" class="learn-sidebar-close learn-sidebar-close--right" id="learnCloseRight" aria-label="Закрыть панель">×</button>
-        <div class="card card--soft">
-            <div class="level-ring-wrap">
-                <div class="level-ring" data-level-ring style="--level-pct: {{ level_info.level_pct }}%;">
-                    <div class="level-ring__inner">
-                        <span class="level-ring__lv" data-level-value>{{ level_info.level }}</span>
-                        <span class="level-ring__sub">уровень</span>
-                    </div>
-                </div>
-                <p class="level-xp-line" data-xp-sub>{{ level_info.xp_in_level }} / {{ level_info.xp_to_next }} XP до след. уровня</p>
-            </div>
-            <div class="level-card__motivation">
-                <h3 class="card__title card__title--compact">Повышай уровень!</h3>
-                <p class="card__muted">Выполняйте задания и набирайте XP.</p>
-            </div>
-        </div>
-
         {% if project_meta %}
         <div class="card card--soft project-progress{% if project_meta.is_complete %} project-progress--complete{% endif %}" id="projectProgressCard">
             <div class="project-progress__hero">
@@ -93,11 +93,10 @@
                         style="width: {{ (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 }}%"></div>
                 </div>
                 <p class="project-progress__summary" data-project-summary>
-                    {% set _pct = (project_meta.stages_done_count * 100 // project_meta.stages_total) if project_meta.stages_total else 0 %}
                     {% if project_meta.is_complete %}
-                    Проект готов · 100% готовности
+                    Проект готов
                     {% else %}
-                    {{ project_meta.stages_done_count }} из {{ project_meta.stages_total }} этапов завершено · {{ _pct }}% готовности
+                    {{ project_meta.stages_done_count }} из {{ project_meta.stages_total }} версий завершено
                     {% endif %}
                 </p>
             </div>

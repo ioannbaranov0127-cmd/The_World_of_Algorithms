@@ -4,6 +4,7 @@
 {% block body_class %}page-home{% endblock %}
 
 {% block content %}
+<script type="application/json" id="course-grade-demo-config">{{ course_grade_demo|tojson }}</script>
 <div class="home-layout">
     <header class="home-header">
         <div class="home-header__inner">
@@ -62,29 +63,24 @@
         </section>
 
         <div class="home-grid-3">
-            <div class="card card--soft stat-card">
+            <div class="card card--soft stat-card" data-home-progress-card>
                 <div class="stat-card__label">Текущий прогресс</div>
                 <div class="duo-progress duo-progress--fat" role="progressbar"
                     aria-valuenow="{{ overall_progress_pct }}" aria-valuemin="0" aria-valuemax="100">
-                    <div class="duo-progress__fill" style="width: {{ overall_progress_pct }}%;"></div>
+                    <div class="duo-progress__fill" data-home-progress-fill style="width: {{ overall_progress_pct }}%;"></div>
                 </div>
-                <p class="stat-card__value">{{ completed_tasks }} / {{ total_tasks }} заданий</p>
-                <p class="stat-card__hint">{{ overall_progress_pct }}% курса пройдено</p>
+                <p class="stat-card__value" data-home-progress-value>{{ completed_tasks }} / {{ total_tasks }} заданий</p>
+                <p class="stat-card__hint" data-home-progress-hint>{{ overall_progress_pct }}% курса пройдено</p>
             </div>
 
-            <div class="card card--soft stat-card">
-                <div class="stat-card__label">Уровень и XP</div>
-                <div class="level-inline">
-                    <span class="level-inline__num">{{ level_info.level }}</span>
-                    <div class="level-inline__bar">
-                        <div class="duo-progress">
-                            <div class="duo-progress__fill" style="width: {{ level_info.level_pct }}%;"></div>
-                        </div>
-                        <span class="level-inline__xp">{{ level_info.xp_in_level }} / {{ level_info.xp_to_next }}
-                            XP</span>
-                    </div>
+            <div class="card card--soft stat-card stat-card--grade stat-card--grade-{{ course_grade.state }}" data-home-grade-card>
+                <div class="stat-card__label">Оценка курса</div>
+                <p class="stat-card__value stat-card__grade-value" data-home-grade-label>{{ course_grade.label }}</p>
+                <div class="duo-progress duo-progress--fat" role="progressbar"
+                    aria-valuenow="{{ course_grade.percent }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="duo-progress__fill" data-home-grade-fill style="width: {{ course_grade.percent }}%;"></div>
                 </div>
-                <p class="stat-card__hint">Каждые {{ level_info.xp_to_next }} XP — новый уровень</p>
+                <p class="stat-card__hint" data-home-grade-hint>{{ course_grade.percent }}% до итоговой оценки</p>
             </div>
 
             <div class="card card--soft stat-card">
@@ -103,14 +99,18 @@
             <h2 class="section-heading">Достижения</h2>
             <div class="ach-grid">
                 {% for a in achievements %}
-                <div class="ach-card {% if not a.unlocked %}ach-card--locked{% endif %}">
+                <div class="ach-card {% if not a.unlocked %}ach-card--locked{% endif %}" data-ach-card
+                    {% if a.min_completed is defined %}data-ach-min-completed="{{ a.min_completed }}"{% endif %}
+                    {% if a.min_fraction is defined %}data-ach-min-fraction="{{ a.min_fraction }}"{% endif %}
+                    {% if a.topic_completed is defined %}data-ach-topic-module="{{ a.topic_completed.module }}" data-ach-topic-num="{{ a.topic_completed.topic }}"{% endif %}
+                    {% if a.project_completed is defined %}data-ach-project-module="{{ a.project_completed.module }}"{% endif %}>
                     <div class="ach-card__icon">{{ a.icon }}</div>
                     <div class="ach-card__title">{{ a.title }}</div>
                     <p class="ach-card__desc">{{ a.description }}</p>
                     {% if a.unlocked %}
-                    <span class="ach-card__badge">Получено</span>
+                    <span class="ach-card__badge" data-ach-badge>Получено</span>
                     {% else %}
-                    <span class="ach-card__badge ach-card__badge--muted">Закрыто</span>
+                    <span class="ach-card__badge ach-card__badge--muted" data-ach-badge>Закрыто</span>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -123,26 +123,26 @@
             <div class="home-modules">
                 {% for module in modules_stats %}
                 {% if module.is_locked %}
-                <div class="module-tile module-tile--locked">
+                <div class="module-tile module-tile--locked" data-home-module="{{ module.id }}">
                     <div class="module-tile__head">
                         <span class="module-tile__icon">{{ module_icon(module.icon, module.icon_file, 'module-tile__icon-img', 24) }}</span>
                         <span class="module-tile__name">{{ module.title }}</span>
                     </div>
                     <div class="duo-progress small">
-                        <div class="duo-progress__fill" style="width: {{ module.progress }}%"></div>
+                        <div class="duo-progress__fill" data-home-module-fill style="width: {{ module.progress }}%"></div>
                     </div>
-                    <span class="module-tile__lock">Сначала завершите предыдущий модуль</span>
+                    <span class="module-tile__lock" data-home-module-pct>Сначала завершите предыдущий модуль</span>
                 </div>
                 {% else %}
-                <a href="{{ url_for('load_module', module_id=module.id) }}" class="module-tile">
+                <a href="{{ url_for('load_module', module_id=module.id) }}" class="module-tile" data-home-module="{{ module.id }}">
                     <div class="module-tile__head">
                         <span class="module-tile__icon">{{ module_icon(module.icon, module.icon_file, 'module-tile__icon-img', 24) }}</span>
                         <span class="module-tile__name">{{ module.title }}</span>
                     </div>
                     <div class="duo-progress small">
-                        <div class="duo-progress__fill" style="width: {{ module.progress }}%"></div>
+                        <div class="duo-progress__fill" data-home-module-fill style="width: {{ module.progress }}%"></div>
                     </div>
-                    <span class="module-tile__pct">{{ module.progress }}%</span>
+                    <span class="module-tile__pct" data-home-module-pct>{{ module.progress }}%</span>
                 </a>
                 {% endif %}
                 {% endfor %}

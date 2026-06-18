@@ -9,7 +9,7 @@ from code_runner import run_python
 from code_runner.interactive_session import InteractiveSession
 from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
 from course_data.project import PROJECT_LINE
-from course_data.project_state import build_project_meta, project_meta_for_task
+from course_data.project_state import build_project_meta, completed_project_stages, project_line_for_module, project_meta_for_task
 from course_data import (
     ACHIEVEMENTS,
     LESSONS,
@@ -30,6 +30,10 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 # One-line toggle: True = нельзя сдавать project_stage без предыдущей версии.
 ENFORCE_PROJECT_STAGE_PREREQUISITE = True
+COURSE_GRADE_PROJECT_WEIGHTS = {1: 52, 2: 28}
+COURSE_GRADE_TASK_WEIGHT = 20
+PROJECT_TASK_KINDS = frozenset({'project_stage', 'project_step'})
+COURSE_GRADE_DEMO_PANEL_ENABLED = True
 
 
 @app.route('/health')
@@ -165,6 +169,38 @@ def build_sidebar_modules(progress, current_module_num, current_topic=None):
     return out
 
 
+def build_course_grade_demo() -> dict:
+    steps = []
+    project_stage_totals = {}
+    non_project_total = 0
+
+    for mid in sorted(LESSONS.keys()):
+        mod = LESSONS[mid]
+        if mod.get('stub'):
+            continue
+        project_stage_totals[str(mid)] = len(project_line_for_module(mid))
+        for task in mod.get('tasks') or []:
+            is_project = task.get('kind') in PROJECT_TASK_KINDS
+            topic = topic_by_task_id(mid, task['id'])
+            if not is_project:
+                non_project_total += 1
+            steps.append({
+                'module': mid,
+                'taskId': task['id'],
+                'topic': topic.get('num') if topic else None,
+                'isProject': is_project,
+                'projectStage': topic.get('num') if topic and is_project else None,
+            })
+
+    return {
+        'steps': steps,
+        'projectWeights': COURSE_GRADE_PROJECT_WEIGHTS,
+        'projectStageTotals': project_stage_totals,
+        'taskWeight': COURSE_GRADE_TASK_WEIGHT,
+        'taskTotal': non_project_total,
+    }
+
+
 def level_meta(total_xp):
     level = total_xp // XP_PER_LEVEL + 1
     in_level = total_xp % XP_PER_LEVEL
@@ -205,7 +241,24 @@ def next_task_preview(progress):
     }
 
 
-def achievement_list(completed_n, total_n):
+def _is_topic_completed(progress, module_id: int, topic_num: int) -> bool:
+    mod = LESSONS.get(module_id) or {}
+    completed = set(progress.completed_tasks)
+    for topic in mod.get('topics') or []:
+        if topic.get('num') != topic_num:
+            continue
+        tasks = topic.get('tasks') or []
+        return bool(tasks) and all(task['id'] in completed for task in tasks)
+    return False
+
+
+def _is_project_completed(progress, module_id: int) -> bool:
+    total = len(project_line_for_module(module_id))
+    return total > 0 and len(completed_project_stages(progress, module_id)) >= total
+
+
+def achievement_list(progress, total_n):
+    completed_n = len(progress.completed_tasks)
     frac = completed_n / total_n if total_n else 0.0
     out = []
     for a in ACHIEVEMENTS:
@@ -214,14 +267,88 @@ def achievement_list(completed_n, total_n):
             unlocked = completed_n >= a['min_completed']
         elif 'min_fraction' in a:
             unlocked = frac >= a['min_fraction'] - 1e-9
+        elif 'topic_completed' in a:
+            req = a['topic_completed']
+            unlocked = _is_topic_completed(progress, req['module'], req['topic'])
+        elif 'project_completed' in a:
+            req = a['project_completed']
+            unlocked = _is_project_completed(progress, req['module'])
         out.append({
             'id': a['id'],
             'icon': a['icon'],
             'title': a['title'],
             'description': a['description'],
             'unlocked': unlocked,
+            **({'min_completed': a['min_completed']} if 'min_completed' in a else {}),
+            **({'min_fraction': a['min_fraction']} if 'min_fraction' in a else {}),
+            **({'topic_completed': a['topic_completed']} if 'topic_completed' in a else {}),
+            **({'project_completed': a['project_completed']} if 'project_completed' in a else {}),
         })
     return out
+
+
+def _course_grade_label(pct: int) -> tuple[str, str]:
+    if pct >= 85:
+        label = 'Отлично'
+        state = 'excellent'
+    elif pct >= 70:
+        label = 'Хорошо'
+        state = 'good'
+    elif pct >= 50:
+        label = 'Удовлетворительно'
+        state = 'satisfactory'
+    else:
+        label = 'Здесь появится твоя оценка'
+        state = 'pending'
+    return label, state
+
+
+def _non_project_task_counts(progress) -> tuple[int, int]:
+    completed = set(progress.completed_tasks)
+    done = 0
+    total = 0
+    for mod in LESSONS.values():
+        if mod.get('stub'):
+            continue
+        for task in mod.get('tasks') or []:
+            if task.get('kind') in PROJECT_TASK_KINDS:
+                continue
+            total += 1
+            if task['id'] in completed:
+                done += 1
+    return done, total
+
+
+def course_grade_meta(progress) -> dict:
+    pct = 0
+    project_done = 0
+    project_total = 0
+
+    for module_id, weight in COURSE_GRADE_PROJECT_WEIGHTS.items():
+        stages_total = len(project_line_for_module(module_id))
+        stages_done = len(completed_project_stages(progress, module_id))
+        project_done += stages_done
+        project_total += stages_total
+        if stages_total:
+            pct += int(stages_done * weight / stages_total)
+
+    task_done, task_total = _non_project_task_counts(progress)
+    if task_total:
+        pct += int(task_done * COURSE_GRADE_TASK_WEIGHT / task_total)
+
+    pct = max(0, min(100, pct))
+    label, state = _course_grade_label(pct)
+    return {
+        'percent': pct,
+        'label': label,
+        'state': state,
+        'completed': task_done + project_done,
+        'total': task_total + project_total,
+        'task_completed': task_done,
+        'task_total': task_total,
+        'project_completed': project_done,
+        'project_total': project_total,
+    }
 
 
 @app.route('/')
@@ -239,8 +366,10 @@ def home():
         completed_tasks=completed_tasks,
         has_progress=has_progress,
         level_info=lm,
+        course_grade=course_grade_meta(progress),
+        course_grade_demo=build_course_grade_demo(),
         next_task=next_task_preview(progress),
-        achievements=achievement_list(completed_tasks, TOTAL_TASKS_COUNT),
+        achievements=achievement_list(progress, TOTAL_TASKS_COUNT),
         overall_progress_pct=overall_pct,
     )
 
@@ -274,6 +403,7 @@ def learn():
                 modules_stats=build_modules_stats(progress),
                 total_tasks=TOTAL_TASKS_COUNT,
                 completed_tasks=len(progress.completed_tasks),
+                course_grade=course_grade_meta(progress),
                 level_info=lm,
                 project_meta=build_project_meta(progress, current_module),
             )
@@ -298,6 +428,7 @@ def learn():
             modules_stats=build_modules_stats(progress),
             total_tasks=TOTAL_TASKS_COUNT,
             completed_tasks=len(progress.completed_tasks),
+            course_grade=course_grade_meta(progress),
             level_info=lm,
             project_meta=build_project_meta(progress, current_module),
         )
@@ -348,6 +479,7 @@ def learn():
         modules_stats=build_modules_stats(progress),
         total_tasks=TOTAL_TASKS_COUNT,
         completed_tasks=len(progress.completed_tasks),
+        course_grade=course_grade_meta(progress),
         task_already_done=task_done,
         level_info=lm,
         safe_task=task_client_payload(current_task),
@@ -361,6 +493,8 @@ def learn():
         project_stage_lock_message=project_stage_lock_message,
         project_stage_is_locked=project_stage_is_locked,
         topic_tasks_nav=topic_tasks_nav,
+        course_grade_demo=build_course_grade_demo(),
+        course_grade_demo_panel_enabled=COURSE_GRADE_DEMO_PANEL_ENABLED,
     )
 
 
@@ -942,6 +1076,7 @@ def api_session():
         'total_xp': progress.total_xp,
         'completed_tasks': len(progress.completed_tasks),
         'total_tasks': TOTAL_TASKS_COUNT,
+        'course_grade': course_grade_meta(progress),
         'module_progress': progress.get_module_progress(progress.current_module),
         'current_module': progress.current_module,
         'level': level_meta(progress.total_xp),
