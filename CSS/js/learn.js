@@ -10,6 +10,7 @@
     var LEARN_SCROLL_KEY = 'learnScrollToTop';
     var LEARN_PAGE_SCROLL_KEY = 'learn-page-scroll-top';
     var LEARN_READING_MODE_KEY = 'learn-reading-mode';
+    var LEARN_PANEL_VISIBILITY_KEY = 'learn-panel-visibility';
     var learnPageScrollTimer = null;
 
     function markLearnScrollToTop() {
@@ -135,6 +136,7 @@
                     if (cfg.projectMeta) applyProjectMeta(cfg.projectMeta);
                 }
                 initReadingModeToggle();
+                initPanelVisibilityToggle();
                 bindLearnTaskUi();
                 updateTopicTaskNav();
                 if (window.scrollY !== scrollAnchor) {
@@ -470,6 +472,16 @@
             if (backdrop) backdrop.classList.remove('is-visible');
             document.body.classList.remove('learn-drawer-open');
         }
+        updatePanelVisibilityAvailability(enabled);
+    }
+
+    function updatePanelVisibilityAvailability(readingModeEnabled) {
+        var root = document.getElementById('panelVisibilityToggle');
+        if (!root) return;
+        root.classList.toggle('panel-visibility-toggle--disabled', readingModeEnabled);
+        root.querySelectorAll('[data-panel-toggle]').forEach(function (btn) {
+            btn.disabled = readingModeEnabled;
+        });
     }
 
     function initReadingModeToggle() {
@@ -483,6 +495,69 @@
         setReadingMode(enabled);
         btn.addEventListener('click', function () {
             setReadingMode(!document.body.classList.contains('learn-reading-mode'));
+        });
+    }
+
+    function readPanelVisibilityState() {
+        try {
+            var parsed = JSON.parse(localStorage.getItem(LEARN_PANEL_VISIBILITY_KEY) || '{}');
+            return {
+                leftHidden: !!parsed.leftHidden,
+                rightHidden: !!parsed.rightHidden
+            };
+        } catch (e) {
+            return { leftHidden: false, rightHidden: false };
+        }
+    }
+
+    function savePanelVisibilityState(state) {
+        try {
+            localStorage.setItem(LEARN_PANEL_VISIBILITY_KEY, JSON.stringify({
+                leftHidden: !!state.leftHidden,
+                rightHidden: !!state.rightHidden
+            }));
+        } catch (e) {}
+    }
+
+    function setPanelVisibilityState(state, persist) {
+        var leftHidden = !!state.leftHidden;
+        var rightHidden = !!state.rightHidden;
+
+        document.body.classList.toggle('learn-hide-left-panel', leftHidden);
+        document.body.classList.toggle('learn-hide-right-panel', rightHidden);
+
+        document.querySelectorAll('[data-panel-toggle]').forEach(function (btn) {
+            var side = btn.dataset.panelToggle;
+            var hidden = side === 'left' ? leftHidden : rightHidden;
+            var stateEl = btn.querySelector('.panel-visibility-toggle__state');
+            btn.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+            btn.setAttribute('aria-label', (hidden ? 'Показать ' : 'Скрыть ') + (side === 'left' ? 'левую панель' : 'правую панель'));
+            btn.setAttribute('title', (hidden ? 'Показать ' : 'Скрыть ') + (side === 'left' ? 'левую панель' : 'правую панель'));
+            if (stateEl) stateEl.textContent = hidden ? '+' : '−';
+        });
+
+        if (persist) savePanelVisibilityState({ leftHidden: leftHidden, rightHidden: rightHidden });
+    }
+
+    function initPanelVisibilityToggle() {
+        var root = document.getElementById('panelVisibilityToggle');
+        if (!root || root.dataset.bound === '1') return;
+        root.dataset.bound = '1';
+
+        var state = readPanelVisibilityState();
+        setPanelVisibilityState(state, false);
+        updatePanelVisibilityAvailability(document.body.classList.contains('learn-reading-mode'));
+
+        root.querySelectorAll('[data-panel-toggle]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var current = readPanelVisibilityState();
+                if (btn.dataset.panelToggle === 'left') {
+                    current.leftHidden = !current.leftHidden;
+                } else {
+                    current.rightHidden = !current.rightHidden;
+                }
+                setPanelVisibilityState(current, true);
+            });
         });
     }
 
@@ -593,7 +668,7 @@
             if (meta.is_complete) {
                 summary.textContent = 'Проект готов';
             } else {
-                summary.textContent = done + ' из ' + total + ' версий завершено';
+                summary.textContent = done + ' из ' + total + ' версий';
             }
         }
 
@@ -854,7 +929,7 @@
 
         var summary = document.querySelector('[data-project-summary]');
         if (summary && total) {
-            summary.textContent = complete ? 'Проект готов' : done + ' из ' + total + ' версий завершено';
+            summary.textContent = complete ? 'Проект готов' : done + ' из ' + total + ' версий';
         }
 
         var bar = document.querySelector('[data-project-bar]');
@@ -2366,6 +2441,7 @@
         initSidebarsScrollMemory();
         initLearnNavigationScroll();
         initReadingModeToggle();
+        initPanelVisibilityToggle();
 
         var elCfg = document.getElementById('learn-config');
         if (!elCfg) return;
