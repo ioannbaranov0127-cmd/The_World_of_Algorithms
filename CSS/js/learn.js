@@ -822,7 +822,8 @@
         try {
             var raw = localStorage.getItem(COURSE_GRADE_DEMO_KEY);
             if (raw === null || raw === '') return null;
-            return clampCourseGradeDemoStep(Number(raw));
+            var value = clampCourseGradeDemoStep(Number(raw));
+            return value > 0 ? value : null;
         } catch (e) {
             return null;
         }
@@ -970,7 +971,11 @@
 
         var stored = readCourseGradeDemoStepCount();
         var current = stored !== null ? stored : 0;
-        applyCourseGradeDemoStepCount(current, stored !== null);
+        if (stored !== null) {
+            applyCourseGradeDemoStepCount(current, false);
+        } else {
+            updateCourseGradeDemoValue(getCourseGradeDemoMeta(0));
+        }
 
         root.querySelectorAll('[data-course-grade-demo-step]').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -985,8 +990,11 @@
         var reset = root.querySelector('[data-course-grade-demo-reset]');
         if (reset) {
             reset.addEventListener('click', function () {
-                current = 0;
-                applyCourseGradeDemoStepCount(0, true);
+                try {
+                    localStorage.removeItem(COURSE_GRADE_DEMO_KEY);
+                    localStorage.removeItem(COURSE_GRADE_DEMO_OLD_KEY);
+                } catch (e) {}
+                window.location.reload();
             });
         }
     }

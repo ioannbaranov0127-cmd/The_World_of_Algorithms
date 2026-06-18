@@ -38,7 +38,8 @@
             if (raw === null || raw === '') return null;
             var steps = (config && config.steps) || [];
             var value = Math.round(Number(raw) || 0);
-            return Math.max(0, Math.min(steps.length, value));
+            value = Math.max(0, Math.min(steps.length, value));
+            return value > 0 ? value : null;
         } catch (e) {
             return null;
         }

@@ -772,13 +772,15 @@ a.side-nav__link:hover {
     font-family: var(--mono);
     font-size: 16px;
     overflow-x: auto;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
     box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .theory-snippet__line {
     display: block;
-    width: fit-content;
-    max-width: 100%;
+    width: max-content;
+    max-width: none;
     background: #ffffff;
     color: #1a1d21;
     padding: 0.2em 0.55em;
