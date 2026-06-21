@@ -53,10 +53,6 @@ code {
     border-radius: 6px;
 }
 
-#130 {
-    position: fixed;
-}
-
 a {
     color: var(--accent);
     text-decoration: none;
@@ -1457,12 +1453,6 @@ a.side-nav__link:hover {
     box-shadow: none;
 }
 
-.level-card__motivation {
-    margin-top: 14px;
-    padding-top: 14px;
-    border-top: 1px solid var(--border);
-}
-
 .card__title--compact {
     font-size: 15px;
     margin: 0 0 6px;
@@ -2038,55 +2028,6 @@ a.side-nav__link:hover {
     font-size: 12px;
 }
 
-/* Level ring */
-.level-ring-wrap {
-    text-align: center;
-}
-
-.level-ring {
-    --level-pct: 0%;
-    width: 96px;
-    height: 96px;
-    margin: 0 auto 10px;
-    border-radius: 50%;
-    background: conic-gradient(#5b8fb8 var(--level-pct), #e4e8ed 0);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-}
-
-.level-ring__inner {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-
-.level-ring__lv {
-    font-size: 26px;
-    font-weight: 800;
-    color: var(--accent);
-    line-height: 1;
-}
-
-.level-ring__sub {
-    font-size: 10px;
-    text-transform: uppercase;
-    color: var(--muted);
-    letter-spacing: 0.04em;
-}
-
-.level-xp-line {
-    margin: 0;
-    font-size: 12px;
-    color: var(--muted);
-}
-
 .module-list {
     display: flex;
     flex-direction: column;
@@ -2563,30 +2504,6 @@ a.side-nav__link:hover {
     color: var(--muted);
 }
 
-.level-inline {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.level-inline__num {
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--accent);
-}
-
-.level-inline__bar {
-    flex: 1;
-    min-width: 0;
-}
-
-.level-inline__xp {
-    display: block;
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--muted);
-}
-
 .home-section {
     margin-bottom: 40px;
 }
@@ -2788,23 +2705,9 @@ a.side-nav__link:hover {
         gap: 8px;
     }
 
-    .home-header__logout {
-        display: contents;
-    }
-
-    /* Гость: «Вход» и «Регистрация» — две равные колонки */
-    .home-header__actions:not(:has(.home-header__logout)) .btn-header {
+    .home-header__actions .btn-header {
         grid-column: auto;
         width: 100%;
-    }
-
-    /* Вошёл: основная кнопка на всю ширину под парой вторичных */
-    .home-header__actions:has(.home-header__logout) .btn-primary.btn-header {
-        grid-column: 1 / -1;
-    }
-
-    .home-header__user {
-        display: none;
     }
 
     .btn-header {
@@ -4038,13 +3941,10 @@ body.ordering-drag-active {
     justify-content: center;
 }
 
-#130 {
-    position: fixed;
-}
-
 /* ----- Dish calorie calculator page ----- */
 .page-dish-calc {
     background: var(--bg);
+    overflow-x: clip;
     --dish-accent-soft: rgba(61, 90, 128, 0.08);
     --dish-accent-border: rgba(61, 90, 128, 0.22);
     --dish-accent-ring: rgba(61, 90, 128, 0.15);
@@ -4056,6 +3956,8 @@ body.ordering-drag-active {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    max-width: 100%;
+    overflow-x: clip;
 }
 
 .dish-calc-header {
@@ -4561,32 +4463,104 @@ body.ordering-drag-active {
     line-height: 1.65;
 }
 
-@media (max-width: 768px) {
-    .dish-calc-card {
-        padding: 24px 18px 20px;
-    }
-
+@media (max-width: 900px) {
     .dish-calc-row {
+        position: relative;
         grid-template-columns: 1fr;
         gap: 12px;
-        padding: 16px;
+        align-items: stretch;
+        padding: 16px 44px 16px 16px;
         border: 1px solid var(--border);
         border-radius: var(--radius);
         background: #fafbfc;
     }
 
     .dish-calc-row__result {
+        min-width: 0;
+        width: 100%;
         justify-content: flex-start;
     }
 
     .dish-calc-row-remove {
-        justify-self: end;
-        margin-top: -8px;
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        margin-top: 0;
+        width: 36px;
+        height: 36px;
+    }
+}
+
+@media (max-width: 768px) {
+    .dish-calc-header {
+        padding: 12px 16px;
+    }
+
+    .dish-calc-header__inner {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .dish-calc-header__actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .dish-calc-header__actions .btn-header {
+        width: 100%;
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+
+    .dish-calc-main {
+        padding: 20px 16px 32px;
+    }
+
+    .dish-calc-card {
+        padding: 24px 18px 20px;
+    }
+
+    .dish-calc-card__head {
+        margin-bottom: 20px;
+    }
+
+    .dish-calc-card__lead {
+        font-size: 15px;
+    }
+
+    .dish-calc-product-list {
+        max-height: min(280px, 45vh);
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .dish-calc-slider::-webkit-slider-thumb {
+        width: 22px;
+        height: 22px;
+    }
+
+    .dish-calc-slider::-moz-range-thumb {
+        width: 22px;
+        height: 22px;
+    }
+
+    .dish-calc-add-btn {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 24px;
     }
 
     .dish-calc-summary {
         grid-template-columns: 1fr;
-        gap: 20px;
+        gap: 16px;
+        padding-top: 20px;
+    }
+
+    .dish-calc-note {
+        font-size: 14px;
+        text-align: left;
     }
 }
 
@@ -4804,6 +4778,16 @@ body.ordering-drag-active {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
+    align-items: center;
+}
+
+.account-logout-form {
+    display: inline;
+    margin: 0;
+}
+
+.account-logout-form button {
+    margin: 0;
 }
 
 .profile-stats-grid {
@@ -5020,11 +5004,6 @@ body.ordering-drag-active {
     margin-bottom: 14px;
 }
 
-.btn-header--active {
-    border-color: var(--accent);
-    background: rgba(61, 90, 128, 0.08);
-}
-
 .btn-sm {
     padding: 8px 14px;
     font-size: 0.85rem;
@@ -5038,6 +5017,21 @@ body.ordering-drag-active {
 
     .profile-hero {
         padding: 22px 18px;
+    }
+
+    .profile-hero__actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .profile-hero__actions .btn,
+    .profile-hero__actions .account-logout-form button {
+        width: 100%;
+    }
+
+    .profile-hero__actions .account-logout-form {
+        display: block;
     }
 }
 
@@ -5257,20 +5251,4 @@ body.ordering-drag-active {
 
 .learn-flashes {
     margin: 0 12px 12px;
-}
-
-.home-header__user {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-right: 4px;
-}
-
-.home-header__logout {
-    display: inline;
-    margin: 0;
-}
-
-.home-header__logout button {
-    margin: 0;
 }

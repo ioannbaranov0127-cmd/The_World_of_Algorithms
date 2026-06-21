@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from 'macros/site_header.html' import site_header %}
+{% from 'macros/account_logout.html' import account_logout_btn %}
 {% block title %}Админка{% endblock %}
 {% block body_class %}page-admin{% endblock %}
 
@@ -29,6 +30,7 @@
             <div class="profile-hero__actions">
                 <a href="{{ url_for('learn') }}" class="btn btn-primary">Открыть курс</a>
                 <a href="{{ url_for('admin.export_csv') }}" class="btn btn-secondary">Скачать таблицу</a>
+                {{ account_logout_btn() }}
             </div>
         </section>
 

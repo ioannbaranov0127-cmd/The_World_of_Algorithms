@@ -8,17 +8,13 @@
         </a>
         <div class="home-header__actions">
             {% if auth_user %}
-            {% if auth_user.is_admin %}
-            <a href="{{ url_for('admin.index') }}"
-                class="btn btn-secondary btn-header{% if active == 'admin' %} btn-header--active{% endif %}">Админка</a>
+            {% if active in ('profile', 'admin') %}
+            <a href="{{ url_for('home') }}" class="btn btn-secondary btn-header">Главная</a>
+            {% elif auth_user.is_admin %}
+            <a href="{{ url_for('admin.index') }}" class="btn btn-secondary btn-header">Админка</a>
             {% else %}
-            <a href="{{ url_for('profile') }}"
-                class="btn btn-secondary btn-header{% if active == 'profile' %} btn-header--active{% endif %}">Профиль</a>
+            <a href="{{ url_for('profile') }}" class="btn btn-secondary btn-header">Профиль</a>
             {% endif %}
-            <span class="home-header__user">{{ auth_user.name }}</span>
-            <form class="home-header__logout" method="post" action="{{ url_for('auth.logout') }}">
-                <button type="submit" class="btn btn-secondary btn-header">Выйти</button>
-            </form>
             {% if auth_user.is_admin %}
             <a href="{{ url_for('learn') }}" class="btn btn-primary btn-header">Открыть курс</a>
             {% else %}

@@ -84,11 +84,6 @@
         "stderr": ""
       },
       {
-        "status": "running",
-        "stdout": "",
-        "stderr": ""
-      },
-      {
         "status": "need_input",
         "stdout": "Число: ",
         "stderr": ""
@@ -238,8 +233,8 @@
     "phase": {
       "status": "done",
       "stdout_chunk": "\n",
-      "stderr_chunk": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n",
-      "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_c_0k3n9o.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n",
+      "stderr_chunk": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_12cs4veu.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n",
+      "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_j9dy0wtw.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_12cs4veu.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n",
       "exit_code": 1,
       "timed_out": false,
       "friendly": {
@@ -248,7 +243,7 @@
           "Проверьте, не равен ли нулю знаменатель.",
           "Можно добавить проверку if b != 0: ..."
         ],
-        "raw": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_c_0k3n9o.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero"
+        "raw": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_j9dy0wtw.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_12cs4veu.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero"
       }
     },
     "events": [
@@ -285,12 +280,12 @@
       {
         "status": "running",
         "stdout": "",
-        "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_c_0k3n9o.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^"
+        "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_j9dy0wtw.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^"
       },
       {
         "status": "done",
         "stdout": "\n",
-        "stderr": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n"
+        "stderr": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_12cs4veu.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n"
       }
     ]
   },

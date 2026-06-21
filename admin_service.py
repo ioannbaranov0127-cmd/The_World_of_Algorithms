@@ -52,7 +52,7 @@ def progress_has_activity(progress: UserProgress) -> bool:
 
 
 def _student_metrics(user: User, progress: UserProgress) -> dict:
-    from app import course_grade_meta, level_meta
+    from app import course_grade_meta
 
     completed = len(progress.completed_tasks)
     overall_pct = int(completed * 100 / TOTAL_TASKS_COUNT) if TOTAL_TASKS_COUNT else 0
@@ -61,7 +61,6 @@ def _student_metrics(user: User, progress: UserProgress) -> dict:
     m2_done = len(completed_project_stages(progress, 2))
     m2_total = len(project_line_for_module(2))
     grade = course_grade_meta(progress)
-    level = level_meta(progress.total_xp)
     last_project = _last_project_snapshot(progress)
 
     row = user.progress
@@ -87,8 +86,6 @@ def _student_metrics(user: User, progress: UserProgress) -> dict:
         'grade_label': grade['label'],
         'grade_percent': grade['percent'],
         'grade_state': grade['state'],
-        'level': level['level'],
-        'total_xp': level['total_xp'],
         'current_module': progress.current_module,
         'module1_pct': progress.get_module_progress(1),
         'module2_pct': progress.get_module_progress(2),
@@ -182,8 +179,6 @@ def export_students_csv() -> str:
         'Последняя версия',
         'Оценка',
         'Оценка %',
-        'XP',
-        'Уровень',
         'Начал',
         'Последний визит',
         'Обновление прогресса',
@@ -199,8 +194,6 @@ def export_students_csv() -> str:
             row['last_project_version'],
             row['grade_label'],
             row['grade_percent'],
-            row['total_xp'],
-            row['level'],
             'да' if row['started'] else 'нет',
             row['last_seen_at'],
             row['progress_updated_at'],

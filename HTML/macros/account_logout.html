@@ -1,0 +1,5 @@
+{% macro account_logout_btn(btn_class='btn btn-secondary') %}
+<form class="account-logout-form" method="post" action="{{ url_for('auth.logout') }}">
+    <button type="submit" class="{{ btn_class }}">Выйти</button>
+</form>
+{% endmacro %}

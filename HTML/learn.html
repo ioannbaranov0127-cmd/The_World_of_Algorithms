@@ -34,7 +34,6 @@
   'editorTemplate': editor_seed,
   'editorStarter': _sc|trim if _sc|trim else default_code_placeholder,
   'taskDone': task_already_done,
-  'taskXpEarned': current_task.xp if task_already_done else 0,
   'taskType': task_kind,
   'taskKind': current_task.get('kind', task_kind),
   'safeTask': safe_task,
@@ -53,6 +52,7 @@
   'courseGradeDemo': course_grade_demo,
   'courseGradeServer': course_grade,
   'sidebarModulesServer': sidebar_modules,
+  'userId': auth_user.id,
 }|tojson }}</script>
 
 <div class="shell shell--learn">
@@ -456,5 +456,5 @@
 </div>
 
 <script type="module" src="{{ url_for('static', filename='js/code-editor.bundle.js') }}"></script>
-<script defer src="{{ url_for('static', filename='js/learn.js', v='grade-demo-fix-1') }}"></script>
+<script defer src="{{ url_for('static', filename='js/learn.js', v='user-storage-1') }}"></script>
 {% endblock %}

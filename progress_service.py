@@ -41,10 +41,9 @@ class UserProgress:
         self._row.project_code = {str(k): v for k, v in self.project_code.items()}
         db.session.commit()
 
-    def complete_task(self, task_id, xp) -> bool:
+    def complete_task(self, task_id, xp=0) -> bool:
         if task_id not in self.completed_tasks:
             self.completed_tasks.append(task_id)
-            self.total_xp += xp
             mark_course_started()
             self.save()
             return True

@@ -106,7 +106,6 @@ def build_profile_context(user: User, progress: UserProgress, *, enforce_m1_gate
 
     m1_stages = _project_checklist(progress, 1)
     m2_stages = _project_checklist(progress, 2)
-    last_project = _last_project_snapshot(progress)
     next_task = next_task_preview(progress)
 
     module_details = []
@@ -141,7 +140,6 @@ def build_profile_context(user: User, progress: UserProgress, *, enforce_m1_gate
         'achievements_total': len(achievements),
         'm1_project_stages': m1_stages,
         'm2_project_stages': m2_stages,
-        'last_project': last_project,
         'next_task': next_task,
         'current_position': _current_position_label(progress),
         'current_module': progress.current_module,

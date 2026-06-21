@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from 'macros/site_header.html' import site_header %}
+{% from 'macros/account_logout.html' import account_logout_btn %}
 {% from 'base.html' import module_icon %}
 {% block title %}Профиль — {{ profile_user.name }}{% endblock %}
 {% block body_class %}page-profile{% endblock %}
@@ -29,9 +30,7 @@
             </div>
             <div class="profile-hero__actions">
                 <a href="{{ url_for('learn') }}" class="btn btn-primary">Продолжить обучение</a>
-                {% if last_project %}
-                <a href="{{ url_for('learn', task_id=last_project.task_id) }}" class="btn btn-secondary">К версии {{ last_project.version_label }}</a>
-                {% endif %}
+                {{ account_logout_btn() }}
             </div>
         </section>
 

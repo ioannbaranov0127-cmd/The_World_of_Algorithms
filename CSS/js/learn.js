@@ -13,10 +13,33 @@
     var LEARN_PANEL_VISIBILITY_KEY = 'learn-panel-visibility';
     var learnPageScrollTimer = null;
 
+    function scopedStorageKey(key) {
+        if (!key) return key;
+        var uid = cfg && cfg.userId;
+        if (uid == null || uid === '') return key;
+        return 'u' + uid + ':' + key;
+    }
+
+    function clearUserLocalStorage() {
+        var uid = cfg && cfg.userId;
+        if (uid == null || uid === '') return;
+        var prefix = 'u' + uid + ':';
+        try {
+            var keys = [];
+            for (var i = 0; i < localStorage.length; i++) {
+                var k = localStorage.key(i);
+                if (k && k.indexOf(prefix) === 0) keys.push(k);
+            }
+            keys.forEach(function (k) {
+                localStorage.removeItem(k);
+            });
+        } catch (e) {}
+    }
+
     function markLearnScrollToTop() {
         try {
             sessionStorage.setItem(LEARN_SCROLL_KEY, '1');
-            localStorage.removeItem(LEARN_PAGE_SCROLL_KEY);
+            localStorage.removeItem(scopedStorageKey(LEARN_PAGE_SCROLL_KEY));
         } catch (e) {}
     }
 
@@ -38,7 +61,7 @@
         try {
             if (sessionStorage.getItem(LEARN_SCROLL_KEY)) {
                 sessionStorage.removeItem(LEARN_SCROLL_KEY);
-                localStorage.removeItem(LEARN_PAGE_SCROLL_KEY);
+                localStorage.removeItem(scopedStorageKey(LEARN_PAGE_SCROLL_KEY));
                 if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
                 scrollLearnPageToTop();
                 return true;
@@ -50,13 +73,13 @@
     function saveLearnPageScroll() {
         try {
             if (sessionStorage.getItem(LEARN_SCROLL_KEY)) return;
-            localStorage.setItem(LEARN_PAGE_SCROLL_KEY, String(window.scrollY || 0));
+            localStorage.setItem(scopedStorageKey(LEARN_PAGE_SCROLL_KEY), String(window.scrollY || 0));
         } catch (e) {}
     }
 
     function restoreLearnPageScroll() {
         try {
-            var raw = localStorage.getItem(LEARN_PAGE_SCROLL_KEY);
+            var raw = localStorage.getItem(scopedStorageKey(LEARN_PAGE_SCROLL_KEY));
             if (raw == null) return;
             var value = parseInt(raw, 10);
             if (Number.isNaN(value)) return;
@@ -343,7 +366,7 @@
 
     function readSidebarModulesState() {
         try {
-            var raw = localStorage.getItem(SIDEBAR_MODULES_KEY);
+            var raw = localStorage.getItem(scopedStorageKey(SIDEBAR_MODULES_KEY));
             if (!raw) return null;
             var parsed = JSON.parse(raw);
             return parsed && typeof parsed === 'object' ? parsed : null;
@@ -354,7 +377,7 @@
 
     function writeSidebarModulesState(state) {
         try {
-            localStorage.setItem(SIDEBAR_MODULES_KEY, JSON.stringify(state));
+            localStorage.setItem(scopedStorageKey(SIDEBAR_MODULES_KEY), JSON.stringify(state));
         } catch (e) {}
     }
 
@@ -423,8 +446,8 @@
     }
 
     function initSidebarsScrollMemory() {
-        initSidebarScrollMemory('learnSidebarLeft', LEFT_SIDEBAR_SCROLL_KEY, 'left');
-        initSidebarScrollMemory('learnSidebarRight', RIGHT_SIDEBAR_SCROLL_KEY, 'right');
+        initSidebarScrollMemory('learnSidebarLeft', scopedStorageKey(LEFT_SIDEBAR_SCROLL_KEY), 'left');
+        initSidebarScrollMemory('learnSidebarRight', scopedStorageKey(RIGHT_SIDEBAR_SCROLL_KEY), 'right');
     }
 
     function initSidebarModules() {
@@ -440,7 +463,7 @@
                 var collapsed = section.classList.toggle('sidebar-module--collapsed');
                 btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
                 writeSidebarModulesState(collectSidebarModulesStateFromDom());
-                saveSidebarScroll(document.getElementById('learnSidebarLeft'), LEFT_SIDEBAR_SCROLL_KEY);
+                saveSidebarScroll(document.getElementById('learnSidebarLeft'), scopedStorageKey(LEFT_SIDEBAR_SCROLL_KEY));
             });
         });
     }
@@ -469,7 +492,7 @@
             if (text) text.textContent = enabled ? 'Обычный режим' : 'Режим чтения';
         }
         try {
-            localStorage.setItem(LEARN_READING_MODE_KEY, enabled ? '1' : '0');
+            localStorage.setItem(scopedStorageKey(LEARN_READING_MODE_KEY), enabled ? '1' : '0');
         } catch (e) {}
         if (enabled) {
             document.querySelectorAll('.learn-sidebar--open').forEach(function (panel) {
@@ -497,7 +520,7 @@
         btn.dataset.bound = '1';
         var enabled = false;
         try {
-            enabled = localStorage.getItem(LEARN_READING_MODE_KEY) === '1';
+            enabled = localStorage.getItem(scopedStorageKey(LEARN_READING_MODE_KEY)) === '1';
         } catch (e) {}
         setReadingMode(enabled);
         btn.addEventListener('click', function () {
@@ -507,7 +530,7 @@
 
     function readPanelVisibilityState() {
         try {
-            var parsed = JSON.parse(localStorage.getItem(LEARN_PANEL_VISIBILITY_KEY) || '{}');
+            var parsed = JSON.parse(localStorage.getItem(scopedStorageKey(LEARN_PANEL_VISIBILITY_KEY)) || '{}');
             return {
                 leftHidden: !!parsed.leftHidden,
                 rightHidden: !!parsed.rightHidden
@@ -519,7 +542,7 @@
 
     function savePanelVisibilityState(state) {
         try {
-            localStorage.setItem(LEARN_PANEL_VISIBILITY_KEY, JSON.stringify({
+            localStorage.setItem(scopedStorageKey(LEARN_PANEL_VISIBILITY_KEY), JSON.stringify({
                 leftHidden: !!state.leftHidden,
                 rightHidden: !!state.rightHidden
             }));
@@ -613,11 +636,11 @@
     }
 
     function codeStorageKey() {
-        return 'code_task_' + cfg.currentTaskId;
+        return scopedStorageKey('code_task_' + cfg.currentTaskId);
     }
 
     function projectCodeStorageKey() {
-        return 'project_code_m' + cfg.currentModule;
+        return scopedStorageKey('project_code_m' + cfg.currentModule);
     }
 
     function saveProjectCodeToStorage(code) {
@@ -767,18 +790,6 @@
 
     function saveCodeToStorage() {
         localStorage.setItem(codeStorageKey(), getCodeValue());
-    }
-
-    function applyLevelUi(levelObj) {
-        if (!levelObj) return;
-        var ring = document.querySelector('[data-level-ring]');
-        if (ring) ring.style.setProperty('--level-pct', levelObj.level_pct + '%');
-        var lv = document.querySelector('[data-level-value]');
-        if (lv) lv.textContent = String(levelObj.level);
-        var xpEl = document.querySelector('[data-xp-sub]');
-        if (xpEl) {
-            xpEl.textContent = levelObj.xp_in_level + ' / ' + levelObj.xp_to_next + ' XP до след. уровня';
-        }
     }
 
     function applyCourseGradeUi(grade) {
@@ -1092,8 +1103,6 @@
 
     function applySessionPayload(d) {
         if (!d || !d.success) return;
-        var xpSide = document.querySelector('[data-total-xp]');
-        if (xpSide) xpSide.textContent = String(d.total_xp);
         var modulesRoot = document.querySelector('.sidebar-modules');
         var mid = modulesRoot ? modulesRoot.dataset.currentModule : null;
         if (mid) {
@@ -1112,7 +1121,6 @@
                 if (doneEl) doneEl.textContent = modDone + ' / ' + modTotal;
             }
         }
-        if (d.level) applyLevelUi(d.level);
         if (d.course_grade) applyCourseGradeUi(d.course_grade);
         if (d.project_meta) applyProjectMeta(d.project_meta);
     }
@@ -1903,9 +1911,9 @@
                         renderCheckConsole(
                             data,
                             'run-console__verdict--ok',
-                            'Верно · +' + data.xp_gained + ' XP · всего ' + data.total_xp + ' XP'
+                            'Верно'
                         );
-                        showNotification('Отлично! +' + data.xp_gained + ' XP', 'success');
+                        showNotification('Отлично!', 'success');
                         saveCodeToStorage();
                         clearCourseGradeDemoPreview();
                         fetchSession();
@@ -2145,7 +2153,7 @@
 
         if (cfg.taskDone) {
             var done = el('div', 'interactive-task__done');
-            done.textContent = 'Задание выполнено · +' + cfg.taskXpEarned + ' XP';
+            done.textContent = 'Задание выполнено';
             wrap.appendChild(done);
             mount.appendChild(wrap);
             return;
@@ -2271,14 +2279,11 @@
                             showNotification('Задание уже выполнено', 'info');
                             return;
                         }
-                        showNotification('Отлично! +' + data.xp_gained + ' XP', 'success');
+                        showNotification('Отлично!', 'success');
                         clearCourseGradeDemoPreview();
                         fetchSession();
-                        applyLevelUi(data.level);
                         if (data.project_meta) applyProjectMeta(data.project_meta);
                         markCurrentTopicTaskDone(cfg.currentTaskId);
-                        var xpSide = document.querySelector('[data-total-xp]');
-                        if (xpSide) xpSide.textContent = String(data.total_xp);
                         setTimeout(function () {
                             refreshLearnTaskInPlace().catch(function () {
                                 location.reload();
@@ -2352,7 +2357,7 @@
 
     function resetProgress() {
         if (!confirm('Сбросить весь прогресс?')) return;
-        localStorage.clear();
+        clearUserLocalStorage();
         fetch('/reset_progress', { method: 'POST' }).then(function () {
             markLearnScrollToTop();
             location.reload();
@@ -2538,7 +2543,7 @@
                 box.className = 'edu-console';
                 clearRunConsole(box);
                 var v = el('div', 'run-console__verdict run-console__verdict--ok');
-                v.textContent = 'Задание выполнено · +' + cfg.taskXpEarned + ' XP';
+                v.textContent = 'Задание выполнено';
                 box.appendChild(v);
                 setConsoleStatus('done', '');
             }
@@ -2548,12 +2553,6 @@
     }
 
     function init() {
-        initSidebarModules();
-        initSidebarsScrollMemory();
-        initLearnNavigationScroll();
-        initReadingModeToggle();
-        initPanelVisibilityToggle();
-
         var elCfg = document.getElementById('learn-config');
         if (!elCfg) return;
         try {
@@ -2561,6 +2560,12 @@
         } catch (e) {
             return;
         }
+
+        initSidebarModules();
+        initSidebarsScrollMemory();
+        initLearnNavigationScroll();
+        initReadingModeToggle();
+        initPanelVisibilityToggle();
 
         if (cfg.projectMeta) applyProjectMeta(cfg.projectMeta);
 

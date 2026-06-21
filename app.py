@@ -20,7 +20,6 @@ from course_data import (
     LESSONS,
     TASK_BY_ID,
     TOTAL_TASKS_COUNT,
-    XP_PER_LEVEL,
     task_client_payload,
     topic_by_task_id,
     validate_interactive_answer,
@@ -225,19 +224,6 @@ def build_course_grade_demo() -> dict:
     }
 
 
-def level_meta(total_xp):
-    level = total_xp // XP_PER_LEVEL + 1
-    in_level = total_xp % XP_PER_LEVEL
-    pct = int(in_level * 100 / XP_PER_LEVEL) if XP_PER_LEVEL else 0
-    return {
-        'level': level,
-        'xp_in_level': in_level,
-        'xp_to_next': XP_PER_LEVEL,
-        'level_pct': pct,
-        'total_xp': total_xp,
-    }
-
-
 def _task_preview_parts(task: dict, topic: dict | None, task_index_in_module: int) -> tuple[str, str]:
     """Короткие части для карточки «Следующее задание»: тема и номер задания."""
     topic_title = (topic or {}).get('title') or ''
@@ -428,7 +414,6 @@ def home():
     progress = get_user_progress() if current_user.is_authenticated else None
     completed_tasks = len(progress.completed_tasks) if progress else 0
     has_progress = course_started(progress) if progress else False
-    lm = level_meta(progress.total_xp) if progress else level_meta(0)
     overall_pct = int(completed_tasks * 100 / TOTAL_TASKS_COUNT) if TOTAL_TASKS_COUNT and progress else 0
     return render_template(
         'index.html',
@@ -438,7 +423,6 @@ def home():
         total_tasks=TOTAL_TASKS_COUNT,
         completed_tasks=completed_tasks,
         has_progress=has_progress,
-        level_info=lm,
         course_grade=course_grade_meta(progress) if progress else course_grade_meta(UserProgress()),
         course_grade_demo=build_course_grade_demo(),
         next_task=next_task_preview(progress) if progress else None,
@@ -501,7 +485,6 @@ def learn():
         tasks = LESSONS[current_module]['tasks']
         mod_obj = LESSONS[current_module]
         if mod_obj.get('stub') or not tasks:
-            lm = level_meta(progress.total_xp)
             return render_template(
                 'learn_stub.html',
                 user=progress,
@@ -511,7 +494,6 @@ def learn():
                 total_tasks=TOTAL_TASKS_COUNT,
                 completed_tasks=len(progress.completed_tasks),
                 course_grade=course_grade_meta(progress),
-                level_info=lm,
                 project_meta=build_project_meta(progress, current_module),
             )
         if current_task_index >= len(tasks):
@@ -527,7 +509,6 @@ def learn():
     module = LESSONS[current_module]
     tasks = module['tasks']
     if module.get('stub') or not tasks:
-        lm = level_meta(progress.total_xp)
         return render_template(
             'learn_stub.html',
             user=progress,
@@ -537,7 +518,6 @@ def learn():
             total_tasks=TOTAL_TASKS_COUNT,
             completed_tasks=len(progress.completed_tasks),
             course_grade=course_grade_meta(progress),
-            level_info=lm,
             project_meta=build_project_meta(progress, current_module),
         )
 
@@ -559,7 +539,6 @@ def learn():
     project_stage_lock_message = _project_stage_lock_message(progress, current_task['id'])
     project_stage_is_locked = bool(project_stage_lock_message)
     task_done = current_task['id'] in progress.completed_tasks
-    lm = level_meta(progress.total_xp)
     topic_num = current_topic.get('num') if current_topic else None
     focused_project_topic = topic_num if is_project_release_task and not project_stage_is_locked else None
     project_meta = build_project_meta(progress, current_module, topic_num=focused_project_topic)
@@ -589,7 +568,6 @@ def learn():
         completed_tasks=len(progress.completed_tasks),
         course_grade=course_grade_meta(progress),
         task_already_done=task_done,
-        level_info=lm,
         safe_task=task_client_payload(current_task),
         topics=topics,
         sidebar_modules=build_sidebar_modules(progress, current_module, current_topic),
@@ -864,8 +842,6 @@ def check_code():
             'already_completed': True,
             'message': 'Задание уже выполнено!',
             'output': '',
-            'xp_gained': 0,
-            'total_xp': progress.total_xp,
         })
 
     project_runs = task.get('project_runs') or []
@@ -978,11 +954,8 @@ def check_code():
         return jsonify({
             'success': True,
             'output': output,
-            'xp_gained': task['xp'],
-            'total_xp': progress.total_xp,
             'module_completed': module_completed,
             'next_module': next_mid,
-            'level': level_meta(progress.total_xp),
             'project_meta': project_meta_for_task(progress, progress.current_module, task_id),
             'project_code_saved': task.get('kind') == 'project_stage',
             **run_fields,
@@ -1039,8 +1012,6 @@ def check_task():
             'success': True,
             'already_completed': True,
             'message': 'Задание уже выполнено!',
-            'xp_gained': 0,
-            'total_xp': progress.total_xp,
         })
 
     if validate_interactive_answer(task, answer):
@@ -1055,11 +1026,8 @@ def check_task():
                 next_mid = keys[i + 1]
         payload = {
             'success': True,
-            'xp_gained': task['xp'],
-            'total_xp': progress.total_xp,
             'module_completed': module_completed,
             'next_module': next_mid,
-            'level': level_meta(progress.total_xp),
         }
         if task.get('kind') == 'project_stage':
             payload['project_meta'] = project_meta_for_task(
@@ -1307,7 +1275,6 @@ def api_session():
     module_done, module_total = _module_task_counts(progress, module_id)
     payload = {
         'success': True,
-        'total_xp': progress.total_xp,
         'completed_tasks': len(progress.completed_tasks),
         'total_tasks': TOTAL_TASKS_COUNT,
         'module_completed_tasks': module_done,
@@ -1315,7 +1282,6 @@ def api_session():
         'course_grade': course_grade_meta(progress),
         'module_progress': progress.get_module_progress(module_id),
         'current_module': module_id,
-        'level': level_meta(progress.total_xp),
         'project_meta': build_project_meta(progress, module_id, topic_num=focus_topic_num),
     }
     if task_id is not None:
