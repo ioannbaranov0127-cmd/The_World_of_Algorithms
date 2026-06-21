@@ -3,11 +3,16 @@ import secrets
 import threading
 import time
 
-from flask import Flask, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, flash, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from flask_login import LoginManager, current_user, login_required
 
+from admin_routes import admin_bp
+from auth_routes import auth_bp
 from code_runner import run_python
 from code_runner.interactive_session import InteractiveSession
+from config import Config
 from course_data.constants import DEFAULT_CODE_EDITOR_PLACEHOLDER
+from course_data.dish_calculator import DISH_CALCULATOR_PRODUCTS, DISH_CALCULATOR_RECIPES
 from course_data.project import PROJECT_LINE
 from course_data.project_state import build_project_meta, completed_project_stages, project_line_for_module, project_meta_for_task
 from course_data import (
@@ -22,18 +27,90 @@ from course_data import (
     validate_project_tests,
     stdout_matches,
 )
+from course_data.task_text_format import format_task_text
+from course_data.project_stage_runner import (
+    PROJECT_STAGE_TIMEOUT_SEC,
+    task_auto_stdin_mode,
+    validate_m1_project_stage,
+    validate_project_stage_runs,
+)
+from db import db
+from models import User
+from profile_service import build_profile_context
+from progress_service import (
+    UserProgress,
+    course_started,
+    get_user_progress,
+    mark_course_started,
+    module_access_lock_message,
+    strict_course_enforcement_enabled,
+    task_access_lock_message,
+)
 
 app = Flask(__name__, static_folder='CSS', template_folder='HTML')
-app.secret_key = os.environ.get('FLASK_SECRET_KEY') or secrets.token_hex(32)
+app.config.from_object(Config)
+if not app.config.get('SECRET_KEY'):
+    app.config['SECRET_KEY'] = secrets.token_hex(32)
+Config.init_app(app)
+app.jinja_env.filters['format_task_text'] = format_task_text
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+db.init_app(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'auth.login'
+login_manager.login_message = 'Войдите или зарегистрируйтесь, чтобы продолжить обучение.'
+
+app.register_blueprint(auth_bp)
+app.register_blueprint(admin_bp)
+
+
+@app.errorhandler(403)
+def forbidden(_error):
+    return render_template('errors/403.html'), 403
+
+
+@app.context_processor
+def inject_auth_context():
+    return {
+        'auth_user': current_user if current_user.is_authenticated else None,
+    }
+
+
+@login_manager.user_loader
+def load_user(user_id: str):
+    return db.session.get(User, int(user_id))
+
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    if request.path.startswith('/api/') or request.is_json:
+        return jsonify({
+            'error': 'Требуется вход',
+            'login_url': url_for('auth.login', next=request.path),
+        }), 401
+    return redirect(url_for('auth.login', next=request.path))
+
+
 # One-line toggle: True = нельзя сдавать project_stage без предыдущей версии.
-ENFORCE_PROJECT_STAGE_PREREQUISITE = True
+ENFORCE_PROJECT_STAGE_PREREQUISITE = Config.ENFORCE_PROJECT_STAGE_PREREQUISITE
+ENFORCE_M1_BEFORE_M2 = Config.ENFORCE_M1_BEFORE_M2
 COURSE_GRADE_PROJECT_WEIGHTS = {1: 52, 2: 28}
 COURSE_GRADE_TASK_WEIGHT = 20
 PROJECT_TASK_KINDS = frozenset({'project_stage', 'project_step'})
-COURSE_GRADE_DEMO_PANEL_ENABLED = True
+COURSE_GRADE_DEMO_PANEL_ENABLED = Config.COURSE_GRADE_DEMO_PANEL_ENABLED
+
+
+def _enforce_m1_gate() -> bool:
+    return ENFORCE_M1_BEFORE_M2 and strict_course_enforcement_enabled()
+
+
+def _enforce_project_prerequisite() -> bool:
+    return ENFORCE_PROJECT_STAGE_PREREQUISITE and strict_course_enforcement_enabled()
+
+
+def _course_grade_demo_panel_enabled() -> bool:
+    return COURSE_GRADE_DEMO_PANEL_ENABLED and current_user.is_authenticated and current_user.is_admin
 
 
 @app.route('/health')
@@ -41,68 +118,8 @@ def health():
     """Проверка для Railway и других PaaS (без сессии и без запуска кода)."""
     return 'ok', 200
 
-user_progress = {}
-
 INTERACTIVE_SESSIONS: dict[str, InteractiveSession] = {}
 INTERACTIVE_LOCK = threading.Lock()
-
-
-class UserProgress:
-    def __init__(self):
-        self.completed_tasks = []
-        self.total_xp = 0
-        self.current_module = 1
-        self.current_task_index = 0
-        self.project_code: dict[int, str] = {}
-
-    def complete_task(self, task_id, xp):
-        if task_id not in self.completed_tasks:
-            self.completed_tasks.append(task_id)
-            self.total_xp += xp
-            return True
-        return False
-
-    def get_module_progress(self, module_id):
-        if module_id not in LESSONS:
-            return 0
-        mod = LESSONS[module_id]
-        tasks = mod['tasks']
-        if mod.get('stub') and not tasks:
-            return 0
-        if not tasks:
-            return 0
-        completed = sum(1 for task in tasks if task['id'] in self.completed_tasks)
-        return int((completed / len(tasks)) * 100)
-
-    def is_module_completed(self, module_id):
-        if module_id not in LESSONS:
-            return False
-        mod = LESSONS[module_id]
-        if mod.get('stub') and not mod['tasks']:
-            return True
-        tasks = mod['tasks']
-        if not tasks:
-            return False
-        return self.get_module_progress(module_id) == 100
-
-    def get_next_module(self):
-        for i in sorted(LESSONS.keys()):
-            mod = LESSONS[i]
-            if mod.get('stub') and not mod['tasks']:
-                continue
-            if not self.is_module_completed(i):
-                return i
-        return None
-
-
-def get_user_progress():
-    user_id = session.get('user_id')
-    if not user_id:
-        user_id = secrets.token_hex(8)
-        session['user_id'] = user_id
-    if user_id not in user_progress:
-        user_progress[user_id] = UserProgress()
-    return user_progress[user_id]
 
 
 def _navigate_to_task_by_id(progress: UserProgress, task_id: int) -> bool:
@@ -116,8 +133,12 @@ def _navigate_to_task_by_id(progress: UserProgress, task_id: int) -> bool:
         tasks = mod.get('tasks') or []
         for i, t in enumerate(tasks):
             if t['id'] == task_id:
+                lock = module_access_lock_message(progress, mid, enforce=_enforce_m1_gate())
+                if lock:
+                    return False
                 progress.current_module = mid
                 progress.current_task_index = i
+                progress.save()
                 return True
     return False
 
@@ -130,7 +151,9 @@ def build_modules_stats(progress):
             'icon': LESSONS[i]['icon'],
             'icon_file': LESSONS[i].get('icon_file'),
             'progress': progress.get_module_progress(i),
-            'is_locked': bool(LESSONS[i].get('stub')),
+            'is_locked': bool(LESSONS[i].get('stub')) or bool(
+                module_access_lock_message(progress, i, enforce=_enforce_m1_gate())
+            ),
             'is_stub': bool(LESSONS[i].get('stub')),
         }
         for i in sorted(LESSONS.keys())
@@ -164,6 +187,7 @@ def build_sidebar_modules(progress, current_module_num, current_topic=None):
             'total_tasks': len(tasks),
             'is_current': mid == current_module_num,
             'expanded': mid == current_module_num,
+            'is_locked': bool(module_access_lock_message(progress, mid, enforce=_enforce_m1_gate())),
             'topics': topics_out,
         })
     return out
@@ -214,6 +238,40 @@ def level_meta(total_xp):
     }
 
 
+def _task_preview_parts(task: dict, topic: dict | None, task_index_in_module: int) -> tuple[str, str]:
+    """Короткие части для карточки «Следующее задание»: тема и номер задания."""
+    topic_title = (topic or {}).get('title') or ''
+    task_label = ''
+    if topic and topic.get('tasks'):
+        for i, row in enumerate(topic['tasks']):
+            if row.get('id') == task.get('id'):
+                task_label = f'Задание {i + 1}'
+                break
+    if not task_label:
+        kind = task.get('kind') or task.get('type') or ''
+        kind_labels = {
+            'project_stage': 'Версия проекта',
+            'ordering': 'Расставить шаги',
+            'quiz': 'Тест',
+            'fill_gaps': 'Заполнить пропуски',
+            'matching': 'Сопоставление',
+            'code': 'Практика',
+        }
+        task_label = kind_labels.get(kind, f'Задание {task_index_in_module + 1}')
+    if not topic_title:
+        topic_title = task_label
+        task_label = ''
+    return topic_title, task_label
+
+
+def _compact_task_preview(task: dict, topic: dict | None, task_index_in_module: int) -> str:
+    """Короткая строка для карточек на главной и в профиле — без полного текста задания."""
+    topic_title, task_label = _task_preview_parts(task, topic, task_index_in_module)
+    if topic_title and task_label:
+        return f'{topic_title} · {task_label.lower()}'
+    return topic_title or task_label or f'Задание {task_index_in_module + 1}'
+
+
 def next_task_preview(progress):
     mid = progress.current_module
     idx = progress.current_task_index
@@ -232,11 +290,15 @@ def next_task_preview(progress):
     if idx >= len(tasks):
         return None
     t = tasks[idx]
+    topic = topic_by_task_id(mid, t['id'])
+    topic_title, task_label = _task_preview_parts(t, topic, idx)
     return {
         'module_title': mod['title'],
         'module_icon': mod['icon'],
         'module_icon_file': mod.get('icon_file'),
-        'text': t['text'],
+        'text': _compact_task_preview(t, topic, idx),
+        'topic_title': topic_title,
+        'task_label': task_label,
         'task_id': t['id'],
     }
 
@@ -303,6 +365,16 @@ def _course_grade_label(pct: int) -> tuple[str, str]:
     return label, state
 
 
+def _module_task_counts(progress: UserProgress, module_id: int) -> tuple[int, int]:
+    mod = LESSONS.get(module_id) or {}
+    tasks = mod.get('tasks') or []
+    if not tasks:
+        return 0, 0
+    completed = set(progress.completed_tasks)
+    done = sum(1 for task in tasks if task['id'] in completed)
+    return done, len(tasks)
+
+
 def _non_project_task_counts(progress) -> tuple[int, int]:
     completed = set(progress.completed_tasks)
     done = 0
@@ -353,23 +425,24 @@ def course_grade_meta(progress) -> dict:
 
 @app.route('/')
 def home():
-    progress = get_user_progress()
-    completed_tasks = len(progress.completed_tasks)
-    has_progress = completed_tasks > 0 or progress.total_xp > 0
-    lm = level_meta(progress.total_xp)
-    overall_pct = int(completed_tasks * 100 / TOTAL_TASKS_COUNT) if TOTAL_TASKS_COUNT else 0
+    progress = get_user_progress() if current_user.is_authenticated else None
+    completed_tasks = len(progress.completed_tasks) if progress else 0
+    has_progress = course_started(progress) if progress else False
+    lm = level_meta(progress.total_xp) if progress else level_meta(0)
+    overall_pct = int(completed_tasks * 100 / TOTAL_TASKS_COUNT) if TOTAL_TASKS_COUNT and progress else 0
     return render_template(
         'index.html',
         user=progress,
-        modules_stats=build_modules_stats(progress),
+        auth_user=current_user if current_user.is_authenticated else None,
+        modules_stats=build_modules_stats(progress) if progress else build_modules_stats(UserProgress()),
         total_tasks=TOTAL_TASKS_COUNT,
         completed_tasks=completed_tasks,
         has_progress=has_progress,
         level_info=lm,
-        course_grade=course_grade_meta(progress),
+        course_grade=course_grade_meta(progress) if progress else course_grade_meta(UserProgress()),
         course_grade_demo=build_course_grade_demo(),
-        next_task=next_task_preview(progress),
-        achievements=achievement_list(progress, TOTAL_TASKS_COUNT),
+        next_task=next_task_preview(progress) if progress else None,
+        achievements=achievement_list(progress, TOTAL_TASKS_COUNT) if progress else achievement_list(UserProgress(), TOTAL_TASKS_COUNT),
         overall_progress_pct=overall_pct,
     )
 
@@ -380,11 +453,45 @@ def theory_schemes_file(filename: str):
     return send_from_directory(base, filename)
 
 
+@app.route('/calorie-calculator')
+def calorie_calculator():
+    return render_template(
+        'calorie_calculator.html',
+        products=DISH_CALCULATOR_PRODUCTS,
+        recipes=DISH_CALCULATOR_RECIPES,
+    )
+
+
+@app.route('/profile')
+@login_required
+def profile():
+    if current_user.is_admin:
+        return redirect(url_for('admin.index'))
+    progress = get_user_progress()
+    ctx = build_profile_context(current_user, progress, enforce_m1_gate=_enforce_m1_gate())
+    return render_template('profile.html', **ctx)
+
+
 @app.route('/learn')
+@login_required
 def learn():
     progress = get_user_progress()
+    mark_course_started()
+
+    m_lock = module_access_lock_message(progress, progress.current_module, enforce=_enforce_m1_gate())
+    if m_lock:
+        progress.current_module = 1
+        progress.current_task_index = 0
+        progress.save()
+        flash(m_lock, 'error')
+
     task_id_arg = request.args.get('task_id', type=int)
-    if task_id_arg is not None and _navigate_to_task_by_id(progress, task_id_arg):
+    if task_id_arg is not None:
+        if not _navigate_to_task_by_id(progress, task_id_arg):
+            lock = module_access_lock_message(progress, 2, enforce=_enforce_m1_gate())
+            if lock:
+                flash(lock, 'error')
+            return redirect(url_for('learn'))
         return redirect(url_for('learn'))
 
     current_module = progress.current_module
@@ -410,6 +517,7 @@ def learn():
         if current_task_index >= len(tasks):
             current_task_index = max(0, len(tasks) - 1)
             progress.current_task_index = current_task_index
+            progress.save()
 
     if current_module not in LESSONS:
         current_module = 1
@@ -494,13 +602,16 @@ def learn():
         project_stage_is_locked=project_stage_is_locked,
         topic_tasks_nav=topic_tasks_nav,
         course_grade_demo=build_course_grade_demo(),
-        course_grade_demo_panel_enabled=COURSE_GRADE_DEMO_PANEL_ENABLED,
+        course_grade_demo_panel_enabled=_course_grade_demo_panel_enabled(),
     )
 
 
-def _run_with_timing(code: str, stdin: str, *, echo_stdin: bool = False):
+def _run_with_timing(code: str, stdin: str, *, echo_stdin: bool = False, timeout_sec: float | None = None):
     t0 = time.perf_counter()
-    result = run_python(code, stdin=stdin, echo_stdin=echo_stdin)
+    kwargs: dict = {}
+    if timeout_sec is not None:
+        kwargs['timeout_sec'] = timeout_sec
+    result = run_python(code, stdin=stdin, echo_stdin=echo_stdin, **kwargs)
     duration_ms = round((time.perf_counter() - t0) * 1000.0, 2)
     return result, duration_ms
 
@@ -510,6 +621,16 @@ def _topic_project_stage_task_id(topic: dict) -> int | None:
         if t.get('kind') == 'project_stage':
             return t.get('id')
     return None
+
+
+def _project_version_label(module_id: int, topic_num: int) -> str:
+    """Подпись версии проекта для модуля (M1: 0.x, M2: 1.x–2.0)."""
+    line = project_line_for_module(module_id)
+    row = line.get(topic_num) or {}
+    label = row.get('version_label', row.get('version', ''))
+    if label:
+        return str(label)
+    return f'{topic_num / 10:.1f}'
 
 
 def _project_stage_prerequisite(task_id: int) -> dict | None:
@@ -544,8 +665,8 @@ def _project_stage_prerequisite(task_id: int) -> dict | None:
     if prev_stage_id is None:
         return None
 
-    prev_ver = (PROJECT_LINE.get(prev_num) or {}).get('version_label', f'{prev_num / 10:.1f}')
-    cur_ver = (PROJECT_LINE.get(current_num) or {}).get('version_label', f'{current_num / 10:.1f}')
+    prev_ver = _project_version_label(module_id, prev_num)
+    cur_ver = _project_version_label(module_id, current_num)
     return {
         'required_task_id': prev_stage_id,
         'required_version': prev_ver,
@@ -554,7 +675,7 @@ def _project_stage_prerequisite(task_id: int) -> dict | None:
 
 
 def _project_stage_lock_message(progress: UserProgress, task_id: int) -> str | None:
-    if not ENFORCE_PROJECT_STAGE_PREREQUISITE:
+    if not _enforce_project_prerequisite():
         return None
     req = _project_stage_prerequisite(task_id)
     if not req:
@@ -588,6 +709,7 @@ def _cleanup_interactive_sessions() -> None:
 
 
 @app.route('/interactive/start', methods=['POST'])
+@login_required
 def interactive_start():
     """Запуск интерактивной сессии c живым poll-стримингом."""
     get_user_progress()
@@ -621,6 +743,7 @@ def interactive_start():
 
 
 @app.route('/interactive/poll', methods=['POST'])
+@login_required
 def interactive_poll():
     get_user_progress()
     _cleanup_interactive_sessions()
@@ -643,6 +766,7 @@ def interactive_poll():
 
 
 @app.route('/interactive/input', methods=['POST'])
+@login_required
 def interactive_input():
     get_user_progress()
     _cleanup_interactive_sessions()
@@ -673,6 +797,7 @@ def interactive_input():
 
 
 @app.route('/interactive/abort', methods=['POST'])
+@login_required
 def interactive_abort():
     get_user_progress()
     _cleanup_interactive_sessions()
@@ -704,6 +829,7 @@ def run_code():
 
 
 @app.route('/check_code', methods=['POST'])
+@login_required
 def check_code():
     progress = get_user_progress()
     data = request.get_json() or {}
@@ -726,6 +852,10 @@ def check_code():
             'expected': 'Сначала завершите предыдущую версию проекта.',
         }), 400
 
+    module_lock = task_access_lock_message(progress, task_id, enforce=_enforce_m1_gate())
+    if module_lock:
+        return jsonify({'success': False, 'error': module_lock}), 403
+
     expected = task['expected']
 
     if task_id in progress.completed_tasks:
@@ -738,27 +868,105 @@ def check_code():
             'total_xp': progress.total_xp,
         })
 
-    result, duration_ms = _run_with_timing(code, stdin)
-    output, error_short, error_detail = result.to_legacy_tuple()
-    run_fields = {**result.to_api_dict(duration_ms=duration_ms)}
-    if stdin.strip():
-        display_result, _display_duration_ms = _run_with_timing(code, stdin, echo_stdin=True)
-        if not display_result.timed_out and display_result.exit_code == result.exit_code:
-            run_fields['stdout'] = display_result.stdout
+    project_runs = task.get('project_runs') or []
+    use_stepik_runs = task.get('kind') == 'project_stage' and bool(project_runs)
+    use_m1_auto_stdin = (
+        task.get('kind') == 'project_stage'
+        and not use_stepik_runs
+        and bool(task_auto_stdin_mode(task))
+    )
 
-    is_correct = False
-    test_failures: list[str] = []
-    if error_short is None:
-        if task.get('kind') == 'project_stage':
-            ok_tests, test_failures = validate_project_tests(code, output, task.get('project_tests'))
-            is_correct = ok_tests
-        else:
-            is_correct = stdout_matches(output, expected)
+    if use_stepik_runs:
+        ok_tests, test_failures, output, stdin_for_check = validate_project_stage_runs(code, task)
+        is_correct = ok_tests
+        error_short = None
+        error_detail = ''
+        if not is_correct and test_failures:
+            error_short = test_failures[0]
+            error_detail = '\n'.join(test_failures)
+
+        display_stdin = stdin_for_check or ''
+        if not display_stdin:
+            for scenario in project_runs:
+                opts = scenario.get('stdin_options') or [scenario.get('stdin') or '']
+                if opts and opts[0]:
+                    display_stdin = opts[0]
+                    break
+        run_fields: dict = {
+            'stdout': output,
+            'stderr': '',
+            'exit_code': 0 if is_correct else 1,
+            'timed_out': False,
+            'duration_ms': 0,
+            'stdin_for_check': display_stdin,
+        }
+        if display_stdin:
+            display_result, duration_ms = _run_with_timing(
+                code,
+                display_stdin,
+                echo_stdin=True,
+                timeout_sec=PROJECT_STAGE_TIMEOUT_SEC,
+            )
+            run_fields['duration_ms'] = duration_ms
+            if not display_result.timed_out:
+                run_fields['stdout'] = display_result.stdout or output
+                run_fields['stderr'] = display_result.stderr or ''
+                run_fields['exit_code'] = display_result.exit_code
+                run_fields['timed_out'] = display_result.timed_out
+    elif use_m1_auto_stdin:
+        ok_tests, test_failures, output, stdin_for_check = validate_m1_project_stage(code, task, stdin)
+        is_correct = ok_tests
+        error_short = None
+        error_detail = ''
+        if not is_correct and test_failures:
+            error_short = test_failures[0]
+            error_detail = '\n'.join(test_failures)
+
+        display_stdin = stdin_for_check or stdin
+        run_fields: dict = {
+            'stdout': output,
+            'stderr': '',
+            'exit_code': 0 if is_correct else 1,
+            'timed_out': False,
+            'duration_ms': 0,
+            'stdin_for_check': display_stdin,
+        }
+        if display_stdin:
+            display_result, duration_ms = _run_with_timing(
+                code,
+                display_stdin,
+                echo_stdin=True,
+                timeout_sec=PROJECT_STAGE_TIMEOUT_SEC,
+            )
+            run_fields['duration_ms'] = duration_ms
+            if not display_result.timed_out:
+                run_fields['stdout'] = display_result.stdout or output
+                run_fields['stderr'] = display_result.stderr or ''
+                run_fields['exit_code'] = display_result.exit_code
+                run_fields['timed_out'] = display_result.timed_out
+    else:
+        result, duration_ms = _run_with_timing(code, stdin)
+        output, error_short, error_detail = result.to_legacy_tuple()
+        run_fields = {**result.to_api_dict(duration_ms=duration_ms)}
+        if stdin.strip():
+            display_result, _display_duration_ms = _run_with_timing(code, stdin, echo_stdin=True)
+            if not display_result.timed_out and display_result.exit_code == result.exit_code:
+                run_fields['stdout'] = display_result.stdout
+
+        is_correct = False
+        test_failures: list[str] = []
+        if error_short is None:
+            if task.get('kind') == 'project_stage':
+                ok_tests, test_failures = validate_project_tests(code, output, task.get('project_tests'))
+                is_correct = ok_tests
+            else:
+                is_correct = stdout_matches(output, expected)
 
     if is_correct:
         progress.complete_task(task_id, task['xp'])
         if task.get('kind') == 'project_stage':
             progress.project_code[progress.current_module] = code
+            progress.save()
         current_module = progress.current_module
         module_completed = progress.is_module_completed(current_module)
         keys = sorted(LESSONS.keys())
@@ -803,6 +1011,7 @@ def check_code():
 
 
 @app.route('/check_task', methods=['POST'])
+@login_required
 def check_task():
     progress = get_user_progress()
     data = request.get_json() or {}
@@ -820,6 +1029,10 @@ def check_task():
             'success': False,
             'message': lock_message,
         }), 400
+
+    module_lock = task_access_lock_message(progress, task_id, enforce=_enforce_m1_gate())
+    if module_lock:
+        return jsonify({'success': False, 'message': module_lock}), 403
 
     if task_id in progress.completed_tasks:
         return jsonify({
@@ -874,6 +1087,7 @@ def _topic_id_at(module_id: int, task_index: int) -> str | None:
 
 
 @app.route('/goto_task', methods=['POST'])
+@login_required
 def goto_task_route():
     """Переход к заданию внутри текущей темы без смены темы."""
     progress = get_user_progress()
@@ -917,6 +1131,7 @@ def goto_task_route():
 
 
 @app.route('/next_task', methods=['POST'])
+@login_required
 def next_task():
     progress = get_user_progress()
     module_num = progress.current_module
@@ -944,10 +1159,15 @@ def next_task():
             nxt = mid
             break
         if nxt is not None:
+            lock = module_access_lock_message(progress, nxt, enforce=_enforce_m1_gate())
+            if lock:
+                return jsonify({'success': False, 'message': lock}), 403
             progress.current_module = nxt
             progress.current_task_index = 0
         else:
             return jsonify({'completed': True})
+
+    progress.save()
 
     new_topic_id = _topic_id_at(progress.current_module, progress.current_task_index)
     topic_changed = bool(
@@ -965,6 +1185,7 @@ def next_task():
 
 
 @app.route('/previous_task', methods=['POST'])
+@login_required
 def previous_task_route():
     progress = get_user_progress()
     module_num = progress.current_module
@@ -990,6 +1211,7 @@ def previous_task_route():
             pt = LESSONS[prev_with_tasks]['tasks']
             progress.current_module = prev_with_tasks
             progress.current_task_index = len(pt) - 1
+        progress.save()
         new_topic_id = _topic_id_at(progress.current_module, progress.current_task_index)
         topic_changed = bool(
             old_topic_id and new_topic_id and old_topic_id != new_topic_id
@@ -1027,6 +1249,8 @@ def previous_task_route():
         old_topic_id and new_topic_id and old_topic_id != new_topic_id
     )
 
+    progress.save()
+
     return jsonify({
         'success': True,
         'module': progress.current_module,
@@ -1038,25 +1262,33 @@ def previous_task_route():
 
 
 @app.route('/reset_progress', methods=['POST'])
+@login_required
 def reset_progress():
-    uid = session.get('user_id')
-    if uid:
-        user_progress[uid] = UserProgress()
+    progress = get_user_progress()
+    progress.reset()
+    session.pop('course_started', None)
     return jsonify({'success': True})
 
 
 @app.route('/load_module/<int:module_id>')
+@login_required
 def load_module(module_id):
     progress = get_user_progress()
     if module_id in LESSONS and LESSONS[module_id].get('stub'):
         return jsonify({'error': 'Модуль в разработке'}), 403
+    lock = module_access_lock_message(progress, module_id, enforce=_enforce_m1_gate())
+    if lock:
+        flash(lock, 'error')
+        return redirect(url_for('learn'))
     if module_id in LESSONS:
         progress.current_module = module_id
         progress.current_task_index = 0
+        progress.save()
     return redirect(url_for('learn'))
 
 
 @app.route('/api/session')
+@login_required
 def api_session():
     progress = get_user_progress()
     task_id = request.args.get('task_id', type=int)
@@ -1071,16 +1303,20 @@ def api_session():
     is_project_release_task = bool(task and task.get('kind') in ('project_stage', 'project_step'))
     is_locked = bool(_project_stage_lock_message(progress, task_id)) if task_id is not None else False
     focus_topic_num = topic.get('num') if (topic and is_project_release_task and not is_locked) else None
+    module_id = progress.current_module
+    module_done, module_total = _module_task_counts(progress, module_id)
     payload = {
         'success': True,
         'total_xp': progress.total_xp,
         'completed_tasks': len(progress.completed_tasks),
         'total_tasks': TOTAL_TASKS_COUNT,
+        'module_completed_tasks': module_done,
+        'module_total_tasks': module_total,
         'course_grade': course_grade_meta(progress),
-        'module_progress': progress.get_module_progress(progress.current_module),
-        'current_module': progress.current_module,
+        'module_progress': progress.get_module_progress(module_id),
+        'current_module': module_id,
         'level': level_meta(progress.total_xp),
-        'project_meta': build_project_meta(progress, progress.current_module, topic_num=focus_topic_num),
+        'project_meta': build_project_meta(progress, module_id, topic_num=focus_topic_num),
     }
     if task_id is not None:
         payload['task_completed'] = task_id in progress.completed_tasks
@@ -1091,3 +1327,13 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('FLASK_DEBUG', '').lower() in ('1', 'true', 'yes')
     app.run(host='0.0.0.0', port=port, debug=debug)
+
+
+def init_database() -> None:
+    instance_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'instance')
+    os.makedirs(instance_dir, exist_ok=True)
+    with app.app_context():
+        db.create_all()
+
+
+init_database()

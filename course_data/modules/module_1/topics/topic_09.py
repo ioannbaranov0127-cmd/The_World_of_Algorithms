@@ -61,6 +61,16 @@ TOPIC: dict = {
                         ),
                     },
                     {
+                        'title': 'Табуляция: отступ показывает вложенность',
+                        'body': (
+                            'Коротко про отступы:\n'
+                            '• Строки внутри if и else сдвигают вправо — Python понимает, что они «внутри» условия.\n'
+                            '• Один уровень — 4 пробела. Проще нажать Tab, чем набирать пробел четыре раза.\n'
+                            '• Shift+Tab убирает лишний отступ.\n'
+                            '• Без отступа Python не поймёт блок и выдаст ошибку.'
+                        ),
+                    },
+                    {
                         'title': 'Конструкция if',
                         'body': (
                             'После if идёт условие и двоеточие. Следующие строки с отступом (обычно 4 пробела) '
@@ -165,7 +175,7 @@ TOPIC: dict = {
                             '    kcal_per_100 = 89\n'
                             'else:\n'
                             '    kcal_per_100 = 0\n'
-                            'print(kcal_per_100)'
+                            'print(kcal_per_100)  # 89'
                         ),
                     },
                     {
@@ -269,18 +279,36 @@ TOPIC: dict = {
         },
         {
             'id': 47,
-            'kind': 'quiz',
-            'category': 'trainer',
-            'type': 'quiz',
-            'text': 'Что обязательно после строки if age >= 14:?',
-            'hint': 'Блок кода с отступом.',
-            'xp': 10,
-            'options': [
-                {'key': 'a', 'label': 'Строки с отступом — тело условия'},
-                {'key': 'b', 'label': 'Точка с запятой'},
-                {'key': 'c', 'label': 'Слово then'},
-            ],
-            'correct': 'a',
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'choice = "2". Если choice == "1", выведите «Яблоко», если choice == "2" — «Банан», иначе «Нет продукта».',
+            'hint': 'Используйте if / elif / else.',
+            'xp': 14,
+            'expected': 'Банан',
+            'starter_code': 'choice = "2"\n',
+        },
+        {
+            'id': 215,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'product = "банан". Через if / elif / else выберите kcal_per_100: яблоко — 52, банан — 89, иначе 0. Выведите kcal_per_100.',
+            'hint': 'elif product == "банан":\n    kcal_per_100 = 89',
+            'xp': 16,
+            'expected': '89',
+            'starter_code': 'product = "банан"\n# выберите kcal_per_100\n',
+        },
+        {
+            'id': 216,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'product = "хлеб", grams = 100. Выберите калорийность через условия: яблоко 52, банан 89, хлеб 250. Посчитайте и выведите калории.',
+            'hint': 'Сначала выбрать kcal_per_100, потом calories = grams * kcal_per_100 / 100.',
+            'xp': 18,
+            'expected': '250.0',
+            'starter_code': 'product = "хлеб"\ngrams = 100\n# if / elif / else, затем формула\n',
         },
         STAGE_08,
     ],

@@ -11,7 +11,13 @@
         <div class="brand-mini">Мир алгоритмов: проектируем на Python</div>
         <nav class="side-nav" aria-label="Разделы">
             <a class="side-nav__link side-nav__link--active" href="{{ url_for('home') }}">Главная</a>
-            <span class="side-nav__link side-nav__link--muted">Профиль</span>
+            <a class="side-nav__link" href="{{ url_for('calorie_calculator') }}">Демо</a>
+            {% if auth_user and not auth_user.is_admin %}
+            <a class="side-nav__link" href="{{ url_for('profile') }}">Профиль</a>
+            {% endif %}
+            {% if auth_user and auth_user.is_admin %}
+            <a class="side-nav__link" href="{{ url_for('admin.index') }}">Админка</a>
+            {% endif %}
         </nav>
 
         <div class="card card--soft course-grade course-grade--{{ course_grade.state }}" data-course-grade-card>

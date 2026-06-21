@@ -53,10 +53,10 @@ TOPIC: dict = {
                             'и передаёт результат в print().'
                         ),
                         'code': (
-                            'print(10 + 5)\n'
-                            'print(10 - 5)\n'
-                            'print(10 * 5)\n'
-                            'print(10 / 5)'
+                            'print(10 + 5)   # 15\n'
+                            'print(10 - 5)   # 5\n'
+                            'print(10 * 5)   # 50\n'
+                            'print(10 / 5)   # 2.0'
                         ),
                     },
                     {
@@ -77,7 +77,10 @@ TOPIC: dict = {
                             'Python считает выражения по привычным правилам: сначала степень, потом умножение и деление, '
                             'потом сложение и вычитание. Скобки помогают явно показать, что нужно посчитать первым.'
                         ),
-                        'code': 'print(2 + 3 * 4)\nprint((2 + 3) * 4)',
+                        'code': (
+                            'print(2 + 3 * 4)    # 14\n'
+                            'print((2 + 3) * 4)  # 20'
+                        ),
                     },
                     {
                         'title': 'От операции к формуле',
@@ -98,7 +101,10 @@ TOPIC: dict = {
                             'Операция / в Python возвращает число с точкой, даже если результат выглядит целым. '
                             'Для калорий это нормально: порция может получиться 78.0 ккал или 78.5 ккал.'
                         ),
-                        'code': 'print(10 / 2)\nprint(150 * 52 / 100)',
+                        'code': (
+                            'print(10 / 2)           # 5.0\n'
+                            'print(150 * 52 / 100)   # 78.0'
+                        ),
                     },
                     {
                         'title': 'Теперь подключим переменные',
@@ -126,7 +132,7 @@ TOPIC: dict = {
                             'grams = int(input("Граммы: "))\n'
                             'kcal_per_100 = 52\n\n'
                             'calories = grams * kcal_per_100 / 100\n'
-                            'print(product, calories, "ккал")'
+                            'print(product, calories, "ккал")  # яблоко 104.0 ккал'
                         ),
                     },
                     {
@@ -227,6 +233,39 @@ TOPIC: dict = {
             'xp': 12,
             'expected': '10.0',
             'starter_code': '# print(...)\n',
+        },
+        {
+            'id': 209,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'Банан: 89 ккал на 100 г. Для grams = 150 посчитайте calories и выведите результат.',
+            'hint': 'calories = grams * kcal_per_100 / 100',
+            'xp': 14,
+            'expected': '133.5',
+            'starter_code': 'grams = 150\nkcal_per_100 = 89\n# calories = ...\n',
+        },
+        {
+            'id': 210,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'Посчитайте калории для курицы: grams = 200, kcal_per_100 = 165. Выведите строку «Калории: 330.0».',
+            'hint': 'print("Калории:", calories)',
+            'xp': 16,
+            'expected': 'Калории: 330.0',
+            'starter_code': 'grams = 200\nkcal_per_100 = 165\n# посчитайте calories и выведите с подписью\n',
+        },
+        {
+            'id': 211,
+            'kind': 'fix_error',
+            'category': 'trainer',
+            'type': 'code',
+            'text': 'Исправьте порядок действий: программа должна посчитать 100 г продукта с калорийностью 52 и вывести 52.0.',
+            'hint': 'Нужна формула grams * kcal_per_100 / 100.',
+            'xp': 14,
+            'expected': '52.0',
+            'starter_code': 'grams = 100\nkcal_per_100 = 52\ncalories = grams * (kcal_per_100 / 10)\nprint(calories)\n',
         },
         STAGE_06,
     ],

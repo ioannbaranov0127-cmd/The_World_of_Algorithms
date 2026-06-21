@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% from 'macros/site_header.html' import site_header %}
+{% block title %}{{ student.name }}{% endblock %}
+{% block body_class %}page-admin{% endblock %}
+
+{% block content %}
+<div class="home-layout">
+    {{ site_header(active='admin', has_progress=true, auth_user=auth_user) }}
+
+    <main class="home-main admin-main">
+        <p class="admin-back"><a href="{{ url_for('admin.index') }}">← К списку</a></p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="auth-flashes">
+            {% for category, message in messages %}
+            <li class="auth-flashes__item auth-flashes__item--{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <section class="profile-hero card card--elevated">
+            <div class="profile-hero__identity">
+                <div class="profile-avatar" aria-hidden="true">{{ student.name[:1]|upper }}</div>
+                <div class="profile-hero__text">
+                    <h1 class="profile-title">{{ student.name }}</h1>
+                    <p class="profile-email">{{ student.email }}</p>
+                    <p class="profile-meta">Последний визит: {{ student.last_seen_at }}</p>
+                </div>
+            </div>
+            <div class="profile-hero__actions admin-hero-actions">
+                <form method="post" action="{{ url_for('admin.student_reset', user_id=student.user_id) }}"
+                    onsubmit="return confirm('Сбросить прогресс {{ student.name }}?');">
+                    <button type="submit" class="btn btn-secondary">Сбросить прогресс</button>
+                </form>
+                <form method="post" action="{{ url_for('admin.student_delete', user_id=student.user_id) }}"
+                    onsubmit="return confirm('Удалить {{ student.name }}? Аккаунт и прогресс будут удалены навсегда.');">
+                    <button type="submit" class="btn btn-secondary admin-btn-delete--block">Удалить ученика</button>
+                </form>
+            </div>
+        </section>
+
+        <div class="profile-stats-grid admin-stats-grid--simple">
+            <div class="card card--soft stat-card">
+                <div class="stat-card__label">Прогресс</div>
+                <p class="stat-card__value">{{ student.overall_pct }}%</p>
+                <p class="stat-card__hint">{{ student.completed_tasks }} из {{ student.total_tasks }} заданий</p>
+            </div>
+            <div class="card card--soft stat-card stat-card--grade stat-card--grade-{{ student.grade_state }}">
+                <div class="stat-card__label">Оценка</div>
+                <p class="stat-card__value stat-card__grade-value">{{ student.grade_label }}</p>
+                <p class="stat-card__hint">{{ student.grade_percent }}%</p>
+            </div>
+            <div class="card card--soft stat-card">
+                <div class="stat-card__label">Уровень</div>
+                <p class="stat-card__value">{{ student.level }}</p>
+                <p class="stat-card__hint">{{ student.total_xp }} XP</p>
+            </div>
+        </div>
+
+        <div class="profile-grid-2">
+            <section class="card card--soft profile-panel">
+                <h2 class="profile-panel__title">Проект · модуль 1</h2>
+                <ul class="profile-stage-list">
+                    {% for stage in student.m1_stages %}
+                    <li class="profile-stage-list__item{% if stage.done %} profile-stage-list__item--done{% endif %}">
+                        <span class="profile-stage-list__mark">{% if stage.done %}✓{% else %}○{% endif %}</span>
+                        <span class="profile-stage-list__ver">{{ stage.version_label }}</span>
+                        <span class="profile-stage-list__feat">{{ stage.feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+            <section class="card card--soft profile-panel">
+                <h2 class="profile-panel__title">Проект · модуль 2</h2>
+                <ul class="profile-stage-list">
+                    {% for stage in student.m2_stages %}
+                    <li class="profile-stage-list__item{% if stage.done %} profile-stage-list__item--done{% endif %}">
+                        <span class="profile-stage-list__mark">{% if stage.done %}✓{% else %}○{% endif %}</span>
+                        <span class="profile-stage-list__ver">{{ stage.version_label }}</span>
+                        <span class="profile-stage-list__feat">{{ stage.feature }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        </div>
+
+        {% if student.last_project and student.last_project.has_code %}
+        <section class="card card--soft profile-panel profile-panel--code">
+            <h2 class="profile-panel__title">Последний код проекта</h2>
+            <p class="profile-panel__lead">{{ student.last_project.version_label }} · {{ student.last_project.feature }}</p>
+            <pre class="profile-code">{{ student.last_project.code }}</pre>
+        </section>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

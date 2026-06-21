@@ -1,0 +1,304 @@
+{
+  "multi_input": {
+    "ok": true,
+    "phase": {
+      "status": "done",
+      "stdout_chunk": "привет\n",
+      "stderr_chunk": "",
+      "stderr": "",
+      "exit_code": 0,
+      "timed_out": false
+    },
+    "events": [
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "Анна\nВВЕДИ: ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "хай\nВВЕДИ: ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "done",
+        "stdout": "привет\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "input_in_loop": {
+    "ok": true,
+    "phase": {
+      "status": "done",
+      "stdout_chunk": "ok 2 3\n",
+      "stderr_chunk": "",
+      "stderr": "",
+      "exit_code": 0,
+      "timed_out": false
+    },
+    "events": [
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "Число: ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "ok 0 1\nЧисло: ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "ok 1 2\nЧисло: ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "done",
+        "stdout": "ok 2 3\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "while_input_break": {
+    "ok": true,
+    "phase": {
+      "status": "done",
+      "stdout_chunk": "d\n",
+      "stderr_chunk": "",
+      "stderr": "",
+      "exit_code": 0,
+      "timed_out": false
+    },
+    "events": [
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "> ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "a\n> ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "b\n> ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "need_input",
+        "stdout": "c\n> ",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "done",
+        "stdout": "d\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "stderr_traceback": {
+    "ok": false,
+    "phase": {
+      "status": "done",
+      "stdout_chunk": "\n",
+      "stderr_chunk": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n",
+      "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_c_0k3n9o.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n",
+      "exit_code": 1,
+      "timed_out": false,
+      "friendly": {
+        "title": "Деление на ноль",
+        "tips": [
+          "Проверьте, не равен ли нулю знаменатель.",
+          "Можно добавить проверку if b != 0: ..."
+        ],
+        "raw": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_c_0k3n9o.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero"
+      }
+    },
+    "events": [
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "start",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "status": "running",
+        "stdout": "",
+        "stderr": "Traceback (most recent call last):\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_harness_c_0k3n9o.py\", line 25, in <module>\n    exec(compile(_code, _user_path, \"exec\"), {\"__name__\": \"__main__\", \"__builtins__\": _builtins})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^"
+      },
+      {
+        "status": "done",
+        "stdout": "\n",
+        "stderr": "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\CC8A~1\\AppData\\Local\\Temp\\edu_user_96s9cu4h.py\", line 2, in <module>\n    x = 1 / 0\n        ~~^~~\nZeroDivisionError: division by zero\n"
+      }
+    ]
+  },
+  "rapid_restart": {
+    "ok": true
+  },
+  "many_sessions": {
+    "ok": true
+  },
+  "all_ok": false
+}

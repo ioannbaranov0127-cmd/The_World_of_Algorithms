@@ -1,3 +1,6 @@
+# Локальная БД
+instance/
+
 # Python
 __pycache__/
 *.py[cod]

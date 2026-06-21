@@ -1,0 +1,724 @@
+{
+  "stages": [
+    {
+      "id": 6,
+      "module": 1,
+      "topic_num": 1,
+      "text": "🚀 Соберите алгоритм приложения «Калькулятор калорий». Расставьте 10 шагов в тако",
+      "type": "ordering",
+      "starter_compiles": true,
+      "status": "skip_ordering"
+    },
+    {
+      "id": 100,
+      "module": 1,
+      "topic_num": 2,
+      "text": "🚀 Версия 0.2: первый запускаемый прототип. В main.py выведите название приложени",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "project_tests",
+        "ok": false,
+        "failures": [
+          "Используйте print().",
+          "Выведите название приложения.",
+          "Добавьте вторую строку: программа запущена или готова к работе."
+        ],
+        "output_len": 0,
+        "timed_out": false,
+        "run_error": null,
+        "stdin": ""
+      },
+      "reference_check": {
+        "path": "project_tests",
+        "ok": true,
+        "failures": [],
+        "output_len": 39,
+        "timed_out": false,
+        "run_error": null,
+        "stdin": ""
+      },
+      "status": "ok"
+    },
+    {
+      "id": 101,
+      "module": 1,
+      "topic_num": 3,
+      "text": "🚀 Версия 0.3: экран и список продуктов. Было в 0.2 — название и «OK» запуска; те",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "project_tests",
+        "ok": false,
+        "failures": [
+          "Добавьте приветствие или понятную подсказку пользователю.",
+          "Добавьте подсказку, что дальше будут вводиться граммы.",
+          "Покажите на экране хотя бы несколько продуктов для будущего выбора."
+        ],
+        "output_len": 20,
+        "timed_out": false,
+        "run_error": null,
+        "stdin": ""
+      },
+      "reference_check": {
+        "path": "project_tests",
+        "ok": true,
+        "failures": [],
+        "output_len": 117,
+        "timed_out": false,
+        "run_error": null,
+        "stdin": ""
+      },
+      "status": "ok"
+    },
+    {
+      "id": 102,
+      "module": 1,
+      "topic_num": 4,
+      "text": "🚀 Версия 0.4: продолжите main.py из версии 0.3. Было: только экран. Теперь подго",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "project_tests",
+        "ok": false,
+        "failures": [
+          "Добавьте хотя бы один продукт.",
+          "Добавьте калорийность хотя бы одного продукта.",
+          "Заведите переменную для граммов.",
+          "Заведите переменную для общего итога."
+        ],
+        "output_len": 61,
+        "timed_out": false,
+        "run_error": null,
+        "stdin": ""
+      },
+      "reference_check": {
+        "path": "project_tests",
+        "ok": true,
+        "failures": [],
+        "output_len": 77,
+        "timed_out": false,
+        "run_error": null,
+        "stdin": ""
+      },
+      "status": "ok"
+    },
+    {
+      "id": 103,
+      "module": 1,
+      "topic_num": 5,
+      "text": "🚀 Версия 0.5: добавьте ввод. Программа должна спросить, какой продукт выбрал пол",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "m1_auto_stdin",
+        "ok": false,
+        "failures": [
+          "Сохраните выбор продукта в переменную.",
+          "Сохраните граммы в переменную.",
+          "Преобразуйте граммы в число через int().",
+          "В выводе должна быть подсказка для выбора продукта.",
+          "В выводе должна быть подсказка для ввода граммов."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "банан\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "reference_check": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 83,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "status": "ok",
+      "check_without_stdin": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 83,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": ""
+      }
+    },
+    {
+      "id": 104,
+      "module": 1,
+      "topic_num": 6,
+      "text": "🚀 Версия 0.6: добавьте расчёт одной порции. После ввода граммов программа должна",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "m1_auto_stdin",
+        "ok": false,
+        "failures": [
+          "Сохраните результат расчёта в переменную.",
+          "В формуле нужно деление на 100.",
+          "Покажите пользователю калории."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "банан\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "reference_check": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 63,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "status": "ok",
+      "check_without_stdin": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 63,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": ""
+      }
+    },
+    {
+      "id": 105,
+      "module": 1,
+      "topic_num": 7,
+      "text": "🚀 Версия 0.7: сделайте вывод результата понятнее. После расчёта покажите, скольк",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "m1_auto_stdin",
+        "ok": false,
+        "failures": [
+          "Сохраните расчёт калорий.",
+          "Выведите понятную подпись к результату.",
+          "В выводе должно быть понятно, сколько калорий добавлено."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "банан\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "reference_check": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 65,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "status": "ok",
+      "check_without_stdin": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 65,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": ""
+      }
+    },
+    {
+      "id": 106,
+      "module": 1,
+      "topic_num": 8,
+      "text": "🚀 Версия 0.8: научите программу выбирать продукт. Можно сделать выбор по названи",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "m1_auto_stdin",
+        "ok": false,
+        "failures": [
+          "Добавьте калорийность продуктов.",
+          "Сохраните расчёт калорий."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "банан\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "reference_check": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 58,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "status": "ok",
+      "check_without_stdin": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 58,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": ""
+      }
+    },
+    {
+      "id": 107,
+      "module": 1,
+      "topic_num": 9,
+      "text": "🚀 Версия 0.9: добавьте общий итог. После расчёта одной порции прибавьте её калор",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "m1_auto_stdin",
+        "ok": false,
+        "failures": [
+          "Заведите переменную общего итога.",
+          "Прибавьте калории порции к общему итогу.",
+          "Покажите общий итог пользователю."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "банан\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "reference_check": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 61,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": "1\n100\n"
+      },
+      "status": "ok",
+      "check_without_stdin": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 61,
+        "stdin_for_check": "1\n100\n",
+        "timed_out": false,
+        "stdin": ""
+      }
+    },
+    {
+      "id": 108,
+      "module": 1,
+      "topic_num": 10,
+      "text": "🚀 Версия 1.0: финальная версия модуля 1: сделайте калькулятор для нескольких пор",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": false,
+      "has_project_tests": true,
+      "starter_check": {
+        "path": "m1_auto_stdin",
+        "ok": false,
+        "failures": [
+          "Завершайте программу через break.",
+          "Сохраните расчёт калорий.",
+          "Сохраните общий итог.",
+          "Покажите общий итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "4\n100\n0\n",
+        "timed_out": false,
+        "stdin": "1\n100\n0\n"
+      },
+      "reference_check": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 77,
+        "stdin_for_check": "1\n100\n0\n",
+        "timed_out": false,
+        "stdin": "1\n100\n0\n"
+      },
+      "status": "ok",
+      "check_without_stdin": {
+        "path": "m1_auto_stdin",
+        "ok": true,
+        "failures": [],
+        "output_len": 77,
+        "stdin_for_check": "1\n100\n0\n",
+        "timed_out": false,
+        "stdin": ""
+      }
+    },
+    {
+      "id": 310,
+      "module": 2,
+      "topic_num": 1,
+      "text": "🚀 Версия 1.1 — Старт: формула и цикл: соберите в main.py рабочий калькулятор на ",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": true,
+        "failures": [],
+        "output_len": 284,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": true,
+        "failures": [],
+        "output_len": 284,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "ok"
+    },
+    {
+      "id": 329,
+      "module": 2,
+      "topic_num": 2,
+      "text": "🚀 Версия 1.2 — Каталог в списках: добавьте списки products и kcal_per_100 — буду",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 340,
+      "module": 2,
+      "topic_num": 3,
+      "text": "🚀 Версия 1.3 — Выбор по номеру меню: пользователь вводит номер из меню. Переведи",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": true,
+        "failures": [],
+        "output_len": 240,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": true,
+        "failures": [],
+        "output_len": 240,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "ok"
+    },
+    {
+      "id": 360,
+      "module": 2,
+      "topic_num": 4,
+      "text": "🚀 Версия 1.4 — Список ингредиентов: заведите список eaten = [] — тренировка пере",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 373,
+      "module": 2,
+      "topic_num": 5,
+      "text": "🚀 Версия 1.5 — Меню циклом for: оформите вывод меню функцией show_menu(): цикл f",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 399,
+      "module": 2,
+      "topic_num": 6,
+      "text": "🚀 Версия 1.6 — Имя и калории вместе: замените два списка одним products — каждый",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…).",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…).",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 419,
+      "module": 2,
+      "topic_num": 7,
+      "text": "🚀 Версия 1.7 — Вывод в функциях: вынесите вывод в функции show_welcome() и show_",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 187,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "После порции должно появиться число калорий или общий итог.",
+          "Покажите результат расчёта (число или слово «ккал»).",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 187,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 439,
+      "module": 2,
+      "topic_num": 8,
+      "text": "🚀 Версия 1.8 — Функция calc_portion: сделайте функцию calc_portion(kcal_per_100,",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "Проверьте формулу: калории × граммы / 100.",
+          "После цикла покажите общий итог за день.",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог.",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "Проверьте формулу: калории × граммы / 100.",
+          "После цикла покажите общий итог за день.",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог.",
+          "Меню должно показывать продукты с номерами (1, 2, 3…)."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 459,
+      "module": 2,
+      "topic_num": 9,
+      "text": "🚀 Версия 1.9 — База products_kcal: замените список products на словарь products_",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "Проверьте формулу: калории × граммы / 100.",
+          "После цикла покажите общий итог за день.",
+          "Меню должно показывать продукты с номерами (1, 2, 3…).",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": false,
+        "failures": [
+          "Проверьте формулу: калории × граммы / 100.",
+          "После цикла покажите общий итог за день.",
+          "Меню должно показывать продукты с номерами (1, 2, 3…).",
+          "Две порции должны дать сумму калорий больше нуля.",
+          "Журнал: после двух порций покажите число записей (len) или итог."
+        ],
+        "output_len": 0,
+        "stdin_for_check": "0\n",
+        "timed_out": false
+      },
+      "status": "expected_starter_fail",
+      "runner_smoke": true
+    },
+    {
+      "id": 485,
+      "module": 2,
+      "topic_num": 10,
+      "text": "🚀 Версия 2.0 — Блюдо как в демо: соберите калькулятор блюда, как в HTML-демо: pr",
+      "type": "code",
+      "starter_compiles": true,
+      "has_project_runs": true,
+      "has_project_tests": false,
+      "starter_check": {
+        "path": "stepik_runs",
+        "ok": true,
+        "failures": [],
+        "output_len": 696,
+        "stdin_for_check": "1\n100\n100\n100\n100\n",
+        "timed_out": false
+      },
+      "reference_check": {
+        "path": "stepik_runs",
+        "ok": true,
+        "failures": [],
+        "output_len": 696,
+        "stdin_for_check": "1\n100\n100\n100\n100\n",
+        "timed_out": false
+      },
+      "status": "ok_starter_passes"
+    }
+  ],
+  "summary": {
+    "total_project_stages": 20,
+    "task_by_id_count": 194,
+    "total_tasks": 194,
+    "ok": 19,
+    "fail": 0,
+    "skip": 1,
+    "all_ok": true
+  },
+  "issues": []
+}

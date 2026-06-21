@@ -22,8 +22,9 @@ def _stage(
     project_tests: list[dict],
     *,
     xp: int = 20,
+    auto_stdin: str | None = None,
 ) -> dict:
-    return {
+    row = {
         'id': task_id,
         'kind': 'project_stage',
         'category': 'project_stage',
@@ -40,6 +41,9 @@ def _stage(
         },
         'project_tests': project_tests,
     }
+    if auto_stdin:
+        row['auto_stdin'] = auto_stdin
+    return row
 
 
 STAGE_04 = _stage(
@@ -112,6 +116,7 @@ STAGE_05 = _stage(
         {'check': 'output_contains_any', 'values': ['Продукт', 'продукт', 'Номер', 'номер'], 'message': 'В выводе должна быть подсказка для выбора продукта.'},
         {'check': 'output_contains_any', 'values': ['Грамм', 'грамм'], 'message': 'В выводе должна быть подсказка для ввода граммов.'},
     ],
+    auto_stdin='m1_single',
 )
 
 STAGE_06 = _stage(
@@ -141,6 +146,7 @@ STAGE_06 = _stage(
         {'check': 'contains_any', 'values': ['/ 100', '/100', '/ 100.0', '/100.0'], 'message': 'В формуле нужно деление на 100.'},
         {'check': 'output_contains_any', 'values': ['Кал', 'кал', 'ккал'], 'message': 'Покажите пользователю калории.'},
     ],
+    auto_stdin='m1_single',
 )
 
 STAGE_07 = _stage(
@@ -171,6 +177,7 @@ STAGE_07 = _stage(
         {'check': 'contains_any', 'values': ['Добавлено', 'Калории', 'калории', 'ккал'], 'message': 'Выведите понятную подпись к результату.'},
         {'check': 'output_contains_any', 'values': ['Добавлено', 'Калории', 'калории', 'ккал'], 'message': 'В выводе должно быть понятно, сколько калорий добавлено.'},
     ],
+    auto_stdin='m1_single',
 )
 
 STAGE_08 = _stage(
@@ -204,6 +211,7 @@ STAGE_08 = _stage(
         {'check': 'contains_any', 'values': ['яблоко', 'банан', '1', '2'], 'message': 'Добавьте хотя бы два варианта выбора продукта.'},
         {'check': 'uses_any_name', 'names': ['calories', 'calori', 'calorii', 'calory', 'kal', 'kcal'], 'message': 'Сохраните расчёт калорий.'},
     ],
+    auto_stdin='m1_single',
 )
 
 STAGE_09 = _stage(
@@ -235,6 +243,7 @@ STAGE_09 = _stage(
         {'check': 'contains', 'value': '+', 'message': 'Прибавьте калории порции к общему итогу.'},
         {'check': 'output_contains_any', 'values': ['Всего', 'Итого', 'ИТОГО', 'итого'], 'message': 'Покажите общий итог пользователю.'},
     ],
+    auto_stdin='m1_single',
 )
 
 STAGE_10 = _stage(
@@ -267,4 +276,5 @@ STAGE_10 = _stage(
         {'check': 'uses_any_name', 'names': ['total', 'itog', 'itogo', 'summa'], 'message': 'Сохраните общий итог.'},
         {'check': 'output_contains_any', 'values': ['Всего', 'Итого', 'ИТОГО', 'итого'], 'message': 'Покажите общий итог.'},
     ],
+    auto_stdin='m1_loop',
 )

@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Калькулятор калорийности блюда{% endblock %}
+{% block body_class %}page-dish-calc{% endblock %}
+
+{% block head_extra %}
+<script defer src="{{ url_for('static', filename='js/calorie-calculator.js', v='6') }}"></script>
+{% endblock %}
+
+{% block content %}
+<script type="application/json" id="dish-calc-products">{{ products|tojson }}</script>
+<script type="application/json" id="dish-calc-recipes">{{ recipes|tojson }}</script>
+<div class="dish-calc-layout">
+    <header class="dish-calc-header">
+        <div class="dish-calc-header__inner">
+            <div class="home-brand home-brand--static">
+                <span class="home-brand__mark">Py</span>
+                <span class="home-brand__text">Калькулятор калорий</span>
+            </div>
+            <div class="dish-calc-header__actions">
+                <a href="{{ url_for('home') }}" class="btn btn-secondary btn-header">Главная</a>
+                <a href="{{ url_for('learn') }}" class="btn btn-primary btn-header">Тренажёр</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="dish-calc-main">
+        <div class="dish-calc-card card card--elevated">
+            <header class="dish-calc-card__head">
+                <h1 class="dish-calc-card__title">Рассчитайте калорийность блюда</h1>
+                <p class="dish-calc-card__lead">Узнайте, сколько калорий содержит ваш любимый рецепт!</p>
+            </header>
+
+            <div class="dish-calc-dish-name">
+                <label class="dish-calc-label" for="dishRecipe">Готовое блюдо</label>
+                <div class="dish-calc-select-wrap dish-calc-select-wrap--wide">
+                    <select id="dishRecipe" class="dish-calc-select dish-calc-select--wide">
+                        <option value="">— выберите из списка или введите своё —</option>
+                        {% for recipe in recipes %}
+                        <option value="{{ recipe.id }}">{{ recipe.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <span class="dish-calc-select-arrow" aria-hidden="true"></span>
+                </div>
+                <label class="dish-calc-label dish-calc-label--spaced" for="dishName">Название блюда</label>
+                <input type="text" id="dishName" class="dish-calc-input dish-calc-input--wide"
+                    placeholder="Например: Салат Оливье, Борщ домашний…" autocomplete="off">
+            </div>
+
+            <div class="dish-calc-rows" id="dishCalcRows" aria-live="polite"></div>
+
+            <button type="button" class="dish-calc-add-btn" id="dishCalcAddBtn">
+                <span class="dish-calc-add-btn__icon" aria-hidden="true">+</span>
+                Добавить ингредиент
+            </button>
+
+            <footer class="dish-calc-summary">
+                <div class="dish-calc-summary__item dish-calc-summary__item--plain">
+                    <span class="dish-calc-summary__label">Итоговый вес блюда</span>
+                    <span class="dish-calc-summary__value dish-calc-summary__value--green" id="dishTotalWeight">0</span>
+                    <span class="dish-calc-summary__unit">Грамм</span>
+                </div>
+                <div class="dish-calc-summary__item dish-calc-summary__item--accent-border">
+                    <span class="dish-calc-summary__label">Количество калорий в блюде</span>
+                    <span class="dish-calc-summary__value dish-calc-summary__value--orange" id="dishTotalKcal">0</span>
+                    <span class="dish-calc-summary__unit">Ккал</span>
+                </div>
+                <div class="dish-calc-summary__item dish-calc-summary__item--plain">
+                    <span class="dish-calc-summary__label">Количество калорий на 100 г</span>
+                    <span class="dish-calc-summary__value dish-calc-summary__value--green" id="dishKcalPer100">0</span>
+                    <span class="dish-calc-summary__unit">Ккал</span>
+                </div>
+            </footer>
+        </div>
+
+        <p class="dish-calc-note muted">
+            Демо-калькулятор для курса «Калькулятор калорий». База продуктов — ориентировочные значения на 100 г.
+            По итогу элективного курса вы соберёте похожую по логике программу калькулятора калорий.
+        </p>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% from 'macros/site_header.html' import site_header %}
+{% from 'base.html' import module_icon %}
+{% block title %}Профиль — {{ profile_user.name }}{% endblock %}
+{% block body_class %}page-profile{% endblock %}
+
+{% block content %}
+<div class="home-layout">
+    {{ site_header(active='profile', has_progress=has_progress, auth_user=profile_user) }}
+
+    <main class="home-main profile-main">
+        <section class="profile-hero card card--elevated">
+            <div class="profile-hero__identity">
+                <div class="profile-avatar" aria-hidden="true">{{ profile_user.name[:1]|upper }}</div>
+                <div class="profile-hero__text">
+                    <p class="profile-kicker">Личный кабинет</p>
+                    <h1 class="profile-title">{{ profile_user.name }}</h1>
+                    <p class="profile-email">{{ profile_user.email }}</p>
+                    <div class="profile-meta-row">
+                        <span class="profile-badge">Ученик</span>
+                        {% if member_since %}
+                        <span class="profile-meta">На курсе с {{ member_since }}</span>
+                        {% endif %}
+                        {% if last_seen %}
+                        <span class="profile-meta">Был(а) {{ last_seen }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="profile-hero__actions">
+                <a href="{{ url_for('learn') }}" class="btn btn-primary">Продолжить обучение</a>
+                {% if last_project %}
+                <a href="{{ url_for('learn', task_id=last_project.task_id) }}" class="btn btn-secondary">К версии {{ last_project.version_label }}</a>
+                {% endif %}
+            </div>
+        </section>
+
+        <div class="profile-stats-grid">
+            <div class="card card--soft stat-card">
+                <div class="stat-card__label">Прогресс курса</div>
+                <div class="duo-progress duo-progress--fat" role="progressbar"
+                    aria-valuenow="{{ overall_progress_pct }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="duo-progress__fill" style="width: {{ overall_progress_pct }}%;"></div>
+                </div>
+                <p class="stat-card__value">{{ completed_tasks }} / {{ total_tasks }} заданий</p>
+                <p class="stat-card__hint">{{ overall_progress_pct }}% курса пройдено</p>
+            </div>
+
+            <div class="card card--soft stat-card stat-card--grade stat-card--grade-{{ course_grade.state }}">
+                <div class="stat-card__label">Оценка курса</div>
+                <div class="duo-progress duo-progress--fat" role="progressbar"
+                    aria-valuenow="{{ course_grade.percent }}" aria-valuemin="0" aria-valuemax="100">
+                    <div class="duo-progress__fill" style="width: {{ course_grade.percent }}%;"></div>
+                </div>
+                <p class="stat-card__value stat-card__grade-value">{{ course_grade.label }}</p>
+                <p class="stat-card__hint">{{ course_grade.percent }}% до итоговой оценки</p>
+            </div>
+        </div>
+
+        <div class="profile-grid-2">
+            <section class="card card--soft profile-panel">
+                <h2 class="profile-panel__title">Модули</h2>
+                <p class="profile-panel__lead">Сейчас: {{ current_position }}</p>
+                <ul class="profile-module-list">
+                    {% for module in modules_stats %}
+                    <li class="profile-module-item{% if module.is_locked %} profile-module-item--locked{% endif %}">
+                        <div class="profile-module-item__head">
+                            <span class="profile-module-item__icon">{{ module_icon(module.icon, module.icon_file, 'profile-module-item__icon-img', 22) }}</span>
+                            <div class="profile-module-item__body">
+                                <div class="profile-module-item__title">{{ module.title }}</div>
+                                <div class="profile-module-item__meta">
+                                    {{ module.completed_tasks }} / {{ module.total_tasks }} заданий
+                                    · проект {{ module.project_done }} / {{ module.project_total }}
+                                </div>
+                            </div>
+                            <span class="profile-module-item__pct">{{ module.progress }}%</span>
+                        </div>
+                        <div class="duo-progress small">
+                            <div class="duo-progress__fill" style="width: {{ module.progress }}%;"></div>
+                        </div>
+                        {% if module.is_locked %}
+                        <p class="profile-module-item__lock">Модуль 2 откроется после версии 1.0</p>
+                        {% elif module.progress < 100 %}
+                        <a class="text-link" href="{{ url_for('load_module', module_id=module.id) }}">Открыть модуль →</a>
+                        {% else %}
+                        <span class="profile-module-item__done">Модуль завершён</span>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section class="card card--soft profile-panel">
+                <h2 class="profile-panel__title">Версии проекта «{{ project_name }}»</h2>
+                <div class="profile-project-block">
+                    <h3 class="profile-project-block__label">Модуль 1 · 0.1 → 1.0</h3>
+                    <ul class="profile-stage-list">
+                        {% for stage in m1_project_stages %}
+                        <li class="profile-stage-list__item{% if stage.done %} profile-stage-list__item--done{% endif %}">
+                            <span class="profile-stage-list__mark" aria-hidden="true">{% if stage.done %}✓{% else %}○{% endif %}</span>
+                            <span class="profile-stage-list__ver">{{ stage.version_label }}</span>
+                            <span class="profile-stage-list__feat">{{ stage.feature }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="profile-project-block">
+                    <h3 class="profile-project-block__label">Модуль 2 · 1.1 → 2.0</h3>
+                    <ul class="profile-stage-list">
+                        {% for stage in m2_project_stages %}
+                        <li class="profile-stage-list__item{% if stage.done %} profile-stage-list__item--done{% endif %}">
+                            <span class="profile-stage-list__mark" aria-hidden="true">{% if stage.done %}✓{% else %}○{% endif %}</span>
+                            <span class="profile-stage-list__ver">{{ stage.version_label }}</span>
+                            <span class="profile-stage-list__feat">{{ stage.feature }}</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </section>
+        </div>
+
+        <section class="home-section">
+            <div class="profile-section-head">
+                <h2 class="section-heading">Достижения</h2>
+                <p class="section-lead">{{ achievements_unlocked }} из {{ achievements_total }} получено</p>
+            </div>
+            <div class="ach-grid">
+                {% for a in achievements %}
+                <div class="ach-card {% if not a.unlocked %}ach-card--locked{% endif %}">
+                    <div class="ach-card__icon">{{ a.icon }}</div>
+                    <div class="ach-card__title">{{ a.title }}</div>
+                    <p class="ach-card__desc">{{ a.description }}</p>
+                    {% if a.unlocked %}
+                    <span class="ach-card__badge">Получено</span>
+                    {% else %}
+                    <span class="ach-card__badge ach-card__badge--muted">Закрыто</span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        {% if next_task and next_task.task_id %}
+        <section class="home-continue">
+            <a href="{{ url_for('learn') }}" class="continue-card">
+                <div class="continue-card__icon">{{ module_icon(next_task.module_icon, next_task.module_icon_file, 'continue-card__icon-img', 36) }}</div>
+                <div class="continue-card__body">
+                    <div class="continue-card__label">Следующий шаг</div>
+                    <div class="continue-card__meta">{{ next_task.module_title }}</div>
+                    <p class="continue-card__task">{{ next_task.text }}</p>
+                </div>
+                <span class="continue-card__arrow" aria-hidden="true">→</span>
+            </a>
+        </section>
+        {% endif %}
+
+    </main>
+
+    <footer class="home-footer">
+        <span>Мир алгоритмов: проектируем на Python</span>
+        <a href="{{ url_for('learn') }}">Тренажёр</a>
+    </footer>
+</div>
+{% endblock %}

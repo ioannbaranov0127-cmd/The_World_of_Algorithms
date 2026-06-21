@@ -1,0 +1,150 @@
+{
+  "checks": [
+    {
+      "id": 6,
+      "type": "ordering",
+      "success": true
+    },
+    {
+      "id": 100,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 101,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 102,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 103,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 104,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 105,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 106,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 107,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 108,
+      "module": 1,
+      "http": 200,
+      "success": true
+    },
+    {
+      "id": 310,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 329,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 340,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 360,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 373,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 399,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 419,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 439,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 459,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "0\n"
+    },
+    {
+      "id": 485,
+      "module": 2,
+      "http": 200,
+      "success": true,
+      "stdin_for_check": "1\n100\n100\n100\n100\n"
+    }
+  ],
+  "issues": [],
+  "health": 200,
+  "pages": {
+    "/": 200,
+    "/learn": 200,
+    "/calorie-calculator": 200,
+    "/profile": 200
+  },
+  "admin": {
+    "student_forbidden": 403,
+    "index": 200,
+    "export": 200,
+    "student_detail": 200,
+    "student_reset": 200,
+    "student_delete": 200
+  },
+  "all_ok": true
+}

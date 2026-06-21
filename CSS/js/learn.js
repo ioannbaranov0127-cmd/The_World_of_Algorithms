@@ -331,6 +331,13 @@
     var RIGHT_SIDEBAR_SCROLL_KEY = 'learn-right-sidebar-scroll-top';
     var COURSE_GRADE_DEMO_KEY = 'learn-course-grade-demo-step-count';
     var COURSE_GRADE_DEMO_OLD_KEY = 'learn-course-grade-demo-percent';
+
+    (function migrateCourseGradeDemoStorage() {
+        try {
+            localStorage.removeItem(COURSE_GRADE_DEMO_KEY);
+            localStorage.removeItem(COURSE_GRADE_DEMO_OLD_KEY);
+        } catch (e) {}
+    })();
     var leftSidebarScrollTimer = null;
     var rightSidebarScrollTimer = null;
 
@@ -820,13 +827,32 @@
 
     function readCourseGradeDemoStepCount() {
         try {
-            var raw = localStorage.getItem(COURSE_GRADE_DEMO_KEY);
+            var raw = sessionStorage.getItem(COURSE_GRADE_DEMO_KEY);
             if (raw === null || raw === '') return null;
             var value = clampCourseGradeDemoStep(Number(raw));
             return value > 0 ? value : null;
         } catch (e) {
             return null;
         }
+    }
+
+    function clearCourseGradeDemoStorage() {
+        try {
+            sessionStorage.removeItem(COURSE_GRADE_DEMO_KEY);
+            localStorage.removeItem(COURSE_GRADE_DEMO_KEY);
+            localStorage.removeItem(COURSE_GRADE_DEMO_OLD_KEY);
+        } catch (e) {}
+    }
+
+    function setCourseGradeDemoPreviewActive(active) {
+        document.body.classList.toggle('course-grade-demo-preview-active', !!active);
+        var card = document.querySelector('[data-course-grade-card]');
+        if (card) card.classList.toggle('course-grade--preview', !!active);
+    }
+
+    function clearCourseGradeDemoPreview() {
+        clearCourseGradeDemoStorage();
+        applyCourseGradeDemoPreview(0, false);
     }
 
     function getCourseGradeDemoMeta(stepCount) {
@@ -886,9 +912,19 @@
         };
     }
 
-    function updateCourseGradeDemoValue(meta) {
-        var valueEl = document.querySelector('[data-course-grade-demo-value]');
-        if (valueEl) valueEl.textContent = meta.percent + '%';
+    function getServerCourseGrade() {
+        if (cfg && cfg.courseGradeServer) {
+            return {
+                percent: cfg.courseGradeServer.percent || 0,
+                label: cfg.courseGradeServer.label || 'Здесь появится твоя оценка',
+                state: cfg.courseGradeServer.state || 'pending',
+            };
+        }
+        return { percent: 0, label: 'Здесь появится твоя оценка', state: 'pending' };
+    }
+
+    function isCourseGradeDemoActive() {
+        return readCourseGradeDemoStepCount() !== null;
     }
 
     function applyCourseGradeDemoModuleUi(meta) {
@@ -897,71 +933,130 @@
             if (!section) return;
             var done = meta.moduleDone[moduleKey] || 0;
             var total = meta.moduleTotal[moduleKey] || 0;
-            var pct = total ? Math.round(done * 100 / total) : 0;
+            var pct = total ? Math.round((done * 100) / total) : 0;
             var pp = section.querySelector('.progress-card__percent');
             var pf = section.querySelector('.sidebar-main-progress .duo-progress__fill');
             var stat = section.querySelector('.progress-card__stats > span:first-child');
+            var meter = section.querySelector('.sidebar-main-progress');
             if (pp) pp.textContent = pct + '%';
             if (pf) pf.style.width = pct + '%';
             if (stat) stat.textContent = done + ' / ' + total + ' заданий';
+            if (meter) {
+                meter.setAttribute('aria-valuenow', String(pct));
+            }
         });
     }
 
-    function applyCourseGradeDemoTopicTaskNav(meta) {
-        if (!cfg || !cfg.topicTasks) return;
-        var completed = meta.completedTaskIds || {};
-        cfg.topicTasks.forEach(function (task) {
-            if (task._realDone === undefined) task._realDone = !!task.done;
-            task.done = !!task._realDone || !!completed[String(task.id)];
+    function restoreCourseGradeDemoModuleUi() {
+        var modules = (cfg && cfg.sidebarModulesServer) || [];
+        modules.forEach(function (mod) {
+            var section = document.querySelector('.sidebar-module[data-module-id="' + mod.id + '"]');
+            if (!section) return;
+            var pct = mod.progress || 0;
+            var pp = section.querySelector('.progress-card__percent');
+            var pf = section.querySelector('.sidebar-main-progress .duo-progress__fill');
+            var stat = section.querySelector('.progress-card__stats > span:first-child');
+            var meter = section.querySelector('.sidebar-main-progress');
+            if (pp) pp.textContent = pct + '%';
+            if (pf) pf.style.width = pct + '%';
+            if (stat) {
+                stat.textContent = (mod.completed_tasks || 0) + ' / ' + (mod.total_tasks || 0) + ' заданий';
+            }
+            if (meter) meter.setAttribute('aria-valuenow', String(pct));
         });
+    }
+
+    function applyCourseGradeDemoTopicNav(meta) {
+        var nav = document.getElementById('topicTaskNav');
+        if (!nav) return;
+        var completed = meta.completedTaskIds || {};
+        nav.querySelectorAll('[data-task-id]').forEach(function (btn) {
+            var tid = String(parseInt(btn.getAttribute('data-task-id'), 10));
+            btn.classList.toggle('topic-task-nav__item--done', !!completed[tid]);
+        });
+    }
+
+    function restoreCourseGradeDemoTopicNav() {
         updateTopicTaskNav();
     }
 
-    function applyCourseGradeDemoProjectUi(meta) {
-        if (!cfg || !cfg.projectMeta) return;
-        var moduleKey = String(cfg.currentModule || '');
-        var doneMap = meta.projectStagesByModule[moduleKey] || {};
-        var done = Object.keys(doneMap).length;
-        var total = Number(cfg.projectMeta.stages_total) || Number((getCourseGradeDemoConfig().projectStageTotals || {})[moduleKey]) || 0;
-        var complete = total > 0 && done >= total;
-
-        var card = document.getElementById('projectProgressCard');
-        if (card) card.classList.toggle('project-progress--complete', complete);
-
-        var summary = document.querySelector('[data-project-summary]');
-        if (summary && total) {
-            summary.textContent = complete ? 'Проект готов' : done + ' из ' + total + ' версий';
-        }
-
-        var bar = document.querySelector('[data-project-bar]');
-        if (bar && total) bar.style.width = Math.round(done * 100 / total) + '%';
-
-        document.querySelectorAll('[data-project-checklist] [data-stage]').forEach(function (item) {
-            var isDone = !!doneMap[String(item.dataset.stage)];
-            item.classList.toggle('project-checklist__item--done', isDone);
-            item.classList.toggle('project-checklist__item--pending', !isDone);
-            item.classList.remove('project-checklist__item--current');
+    function buildDemoProjectMeta(meta) {
+        if (!cfg.projectMeta) return null;
+        var moduleKey = String(cfg.currentModule);
+        var doneStages = meta.projectStagesByModule[moduleKey] || {};
+        var doneCount = 0;
+        var shouldHighlightProjectStage = !!(
+            cfg.isProjectStage &&
+            !cfg.isProjectStageLocked &&
+            cfg.currentTopicNum != null
+        );
+        var targetStage = shouldHighlightProjectStage ? String(cfg.currentTopicNum) : null;
+        var checklist = (cfg.projectMeta.checklist || []).map(function (item) {
+            var copy = Object.assign({}, item);
+            var stageKey = String(copy.num);
+            if (doneStages[stageKey]) {
+                copy.status = 'done';
+                doneCount += 1;
+            } else if (shouldHighlightProjectStage && stageKey === targetStage) {
+                copy.status = 'current';
+            } else {
+                copy.status = 'pending';
+            }
+            return copy;
         });
+        var stagesTotal = cfg.projectMeta.stages_total || checklist.length || 0;
+        return {
+            name: cfg.projectMeta.name,
+            stages_total: stagesTotal,
+            stages_done_count: doneCount,
+            is_complete: stagesTotal > 0 && doneCount >= stagesTotal,
+            checklist: checklist,
+        };
     }
 
-    function applyCourseGradeDemoStepCount(stepCount, persist) {
+    function applyCourseGradeDemoProjectUi(meta) {
+        var demoMeta = buildDemoProjectMeta(meta);
+        if (demoMeta) applyProjectMeta(demoMeta);
+    }
+
+    function restoreCourseGradeDemoProjectUi() {
+        if (cfg.projectMeta) applyProjectMeta(cfg.projectMeta);
+    }
+
+    function updateCourseGradeDemoValue(meta) {
+        var valueEl = document.querySelector('[data-course-grade-demo-value]');
+        if (!valueEl) return;
+        var stepsLabel = meta.stepCount + ' / ' + meta.stepsTotal;
+        valueEl.textContent = meta.percent + '% · ' + stepsLabel;
+    }
+
+    function applyCourseGradeDemoPreview(stepCount, persist) {
         var meta = getCourseGradeDemoMeta(stepCount);
         if (persist) {
             try {
-                localStorage.setItem(COURSE_GRADE_DEMO_KEY, String(meta.stepCount));
+                if (meta.stepCount > 0) {
+                    sessionStorage.setItem(COURSE_GRADE_DEMO_KEY, String(meta.stepCount));
+                } else {
+                    sessionStorage.removeItem(COURSE_GRADE_DEMO_KEY);
+                }
+                localStorage.removeItem(COURSE_GRADE_DEMO_KEY);
                 localStorage.removeItem(COURSE_GRADE_DEMO_OLD_KEY);
             } catch (e) {}
         }
         updateCourseGradeDemoValue(meta);
-        applyCourseGradeUi(meta);
-        applyCourseGradeDemoModuleUi(meta);
-        applyCourseGradeDemoTopicTaskNav(meta);
-        applyCourseGradeDemoProjectUi(meta);
-    }
-
-    function applyStoredCourseGradeDemo() {
-        var stored = readCourseGradeDemoStepCount();
-        if (stored !== null) applyCourseGradeDemoStepCount(stored, false);
+        if (meta.stepCount > 0) {
+            setCourseGradeDemoPreviewActive(true);
+            applyCourseGradeUi(meta);
+            applyCourseGradeDemoModuleUi(meta);
+            applyCourseGradeDemoTopicNav(meta);
+            applyCourseGradeDemoProjectUi(meta);
+        } else {
+            setCourseGradeDemoPreviewActive(false);
+            applyCourseGradeUi(getServerCourseGrade());
+            restoreCourseGradeDemoModuleUi();
+            restoreCourseGradeDemoTopicNav();
+            restoreCourseGradeDemoProjectUi();
+        }
     }
 
     function initCourseGradeDemoControls() {
@@ -972,7 +1067,7 @@
         var stored = readCourseGradeDemoStepCount();
         var current = stored !== null ? stored : 0;
         if (stored !== null) {
-            applyCourseGradeDemoStepCount(current, false);
+            applyCourseGradeDemoPreview(stored, false);
         } else {
             updateCourseGradeDemoValue(getCourseGradeDemoMeta(0));
         }
@@ -983,18 +1078,14 @@
                 var base = readCourseGradeDemoStepCount();
                 if (base === null) base = current;
                 current = clampCourseGradeDemoStep(base + step);
-                applyCourseGradeDemoStepCount(current, true);
+                applyCourseGradeDemoPreview(current, true);
             });
         });
 
         var reset = root.querySelector('[data-course-grade-demo-reset]');
         if (reset) {
             reset.addEventListener('click', function () {
-                try {
-                    localStorage.removeItem(COURSE_GRADE_DEMO_KEY);
-                    localStorage.removeItem(COURSE_GRADE_DEMO_OLD_KEY);
-                } catch (e) {}
-                window.location.reload();
+                clearCourseGradeDemoPreview();
             });
         }
     }
@@ -1003,23 +1094,27 @@
         if (!d || !d.success) return;
         var xpSide = document.querySelector('[data-total-xp]');
         if (xpSide) xpSide.textContent = String(d.total_xp);
-        var doneEl = document.querySelector('[data-completed-count]');
-        if (doneEl) doneEl.textContent = d.completed_tasks + ' / ' + d.total_tasks;
         var modulesRoot = document.querySelector('.sidebar-modules');
         var mid = modulesRoot ? modulesRoot.dataset.currentModule : null;
         if (mid) {
             var section = document.querySelector('.sidebar-module[data-module-id="' + mid + '"]');
             if (section) {
+                var modDone =
+                    d.module_completed_tasks != null ? d.module_completed_tasks : d.completed_tasks;
+                var modTotal = d.module_total_tasks != null ? d.module_total_tasks : d.total_tasks;
                 var pp = section.querySelector('.progress-card__percent');
                 var pf = section.querySelector('.sidebar-main-progress .duo-progress__fill');
+                var stat = section.querySelector('.progress-card__stats > span:first-child');
                 if (pp) pp.textContent = d.module_progress + '%';
                 if (pf) pf.style.width = d.module_progress + '%';
+                if (stat) stat.textContent = modDone + ' / ' + modTotal + ' заданий';
+                var doneEl = section.querySelector('[data-completed-count]');
+                if (doneEl) doneEl.textContent = modDone + ' / ' + modTotal;
             }
         }
         if (d.level) applyLevelUi(d.level);
         if (d.course_grade) applyCourseGradeUi(d.course_grade);
         if (d.project_meta) applyProjectMeta(d.project_meta);
-        applyStoredCourseGradeDemo();
     }
 
     function fetchSession() {
@@ -1812,6 +1907,7 @@
                         );
                         showNotification('Отлично! +' + data.xp_gained + ' XP', 'success');
                         saveCodeToStorage();
+                        clearCourseGradeDemoPreview();
                         fetchSession();
                         if (data.project_code_saved) {
                             saveProjectCodeToStorage(getCodeValue());
@@ -1841,8 +1937,9 @@
                         }
                     }
                 } else {
-                    var wrong =
-                        'Пока не совпало с эталоном · сравните вывод ниже и попробуйте снова.';
+                    var wrong = cfg.isProjectStage
+                        ? 'Автотест не пройден · программа должна работать с тестовым вводом (как на Stepik).'
+                        : 'Пока не совпало с эталоном · сравните вывод ниже и попробуйте снова.';
                     if (data.test_failures && data.test_failures.length) {
                         wrong = data.test_failures.join(' · ');
                     }
@@ -2175,6 +2272,7 @@
                             return;
                         }
                         showNotification('Отлично! +' + data.xp_gained + ' XP', 'success');
+                        clearCourseGradeDemoPreview();
                         fetchSession();
                         applyLevelUi(data.level);
                         if (data.project_meta) applyProjectMeta(data.project_meta);
@@ -2240,6 +2338,11 @@
     }
 
     function loadModule(moduleId) {
+        var section = document.querySelector('.sidebar-module[data-module-id="' + moduleId + '"]');
+        if (section && section.dataset.moduleLocked === '1') {
+            showNotification('Сначала завершите модуль 1', 'info');
+            return;
+        }
         saveCodeToStorage();
         if (moduleId !== cfg.currentModule) {
             markLearnScrollToTop();

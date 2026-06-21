@@ -51,6 +51,8 @@
   'projectMeta': project_meta,
   'topicTasks': topic_tasks_nav,
   'courseGradeDemo': course_grade_demo,
+  'courseGradeServer': course_grade,
+  'sidebarModulesServer': sidebar_modules,
 }|tojson }}</script>
 
 <div class="shell shell--learn">
@@ -59,9 +61,27 @@
         <button type="button" class="learn-sidebar-close" id="learnCloseLeft" aria-label="Закрыть меню">×</button>
         <div class="brand-mini">Мир алгоритмов: проектируем на Python</div>
         <nav class="side-nav" aria-label="Разделы">
-            <a class="side-nav__link side-nav__link--active" href="{{ url_for('home') }}">Главная</a>
-            <span class="side-nav__link side-nav__link--muted">Профиль</span>
+            <a class="side-nav__link" href="{{ url_for('home') }}">Главная</a>
+            <a class="side-nav__link" href="{{ url_for('calorie_calculator') }}">Демо</a>
+            {% if auth_user %}
+            {% if not auth_user.is_admin %}
+            <a class="side-nav__link" href="{{ url_for('profile') }}">Профиль</a>
+            {% endif %}
+            {% if auth_user.is_admin %}
+            <a class="side-nav__link" href="{{ url_for('admin.index') }}">Админка</a>
+            {% endif %}
+            {% endif %}
         </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="auth-flashes learn-flashes">
+            {% for category, message in messages %}
+            <li class="auth-flashes__item auth-flashes__item--{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
 
         <div class="card card--soft course-grade course-grade--{{ course_grade.state }}" data-course-grade-card>
             <div class="course-grade__value" data-course-grade-label>{{ course_grade.label }}</div>
@@ -83,8 +103,8 @@
 
         <div class="sidebar-modules" data-current-module="{{ current_module_num }}">
             {% for mod in sidebar_modules %}
-            <section class="sidebar-module{% if not mod.expanded %} sidebar-module--collapsed{% endif %}"
-                data-module-id="{{ mod.id }}">
+            <section class="sidebar-module{% if not mod.expanded %} sidebar-module--collapsed{% endif %}{% if mod.is_locked %} sidebar-module--locked{% endif %}"
+                data-module-id="{{ mod.id }}"{% if mod.is_locked %} data-module-locked="1"{% endif %}>
                 <button type="button" class="sidebar-module__toggle card card--soft progress-card"
                     aria-expanded="{{ 'true' if mod.expanded else 'false' }}"
                     aria-controls="sidebarTopics{{ mod.id }}">
@@ -119,14 +139,15 @@
         {% if course_grade_demo_panel_enabled %}
         <div class="card card--soft course-grade-demo" data-course-grade-demo>
             <div class="course-grade-demo__head">
-                <span>Проверка оценки</span>
+                <span>Превью оценки</span>
                 <span data-course-grade-demo-value>0%</span>
             </div>
-            <div class="course-grade-demo__controls" aria-label="Временная настройка баллов">
-                <button type="button" class="course-grade-demo__btn" data-course-grade-demo-step="-1">−</button>
-                <button type="button" class="course-grade-demo__btn" data-course-grade-demo-step="1">+</button>
+            <div class="course-grade-demo__controls" aria-label="Превью шкалы оценки">
+                <button type="button" class="course-grade-demo__btn" data-course-grade-demo-step="-1" title="Шаг назад">−</button>
+                <button type="button" class="course-grade-demo__btn" data-course-grade-demo-step="1" title="Шаг вперёд">+</button>
             </div>
             <button type="button" class="course-grade-demo__reset" data-course-grade-demo-reset>Сбросить</button>
+            <p class="course-grade-demo__hint">Только для преподавателя: превью шкалы и прогресса. На реальный прогресс не влияет. Сбрасывается при выполнении задания или кнопкой «Сбросить».</p>
         </div>
         {% endif %}
     </aside>
@@ -318,6 +339,8 @@
                 </div>
                 {% elif is_project_stage and project_spec %}
                 <div class="project-stage-spec callout callout--tips">
+                    {% if project_spec.module_goal %}<p><strong>Цель модуля 2.</strong> {{ project_spec.module_goal }}</p>{% endif %}
+                    {% if project_spec.roadmap_line %}<p><strong>Этот шаг.</strong> {{ project_spec.roadmap_line }}</p>{% endif %}
                     {% if project_spec.tz %}<p><strong>Техническое задание.</strong> {{ project_spec.tz }}</p>{% endif %}
                     {% if project_spec.requirements %}
                     <p><strong>Требования:</strong></p>
@@ -329,7 +352,7 @@
                 </div>
                 {% endif %}
                 {% if not (is_project_stage and project_stage_lock_message) %}
-                <p class="task-panel__text"><strong>{{ current_task.text }}</strong></p>
+                <div class="task-panel__text">{{ current_task.text | format_task_text }}</div>
                 <button type="button" class="btn btn-ghost" id="hintBtn">Показать подсказку</button>
                 {% else %}
                 <p class="task-panel__text"><strong>Задание этого релиза откроется автоматически после завершения предыдущей версии проекта.</strong></p>
@@ -433,5 +456,5 @@
 </div>
 
 <script type="module" src="{{ url_for('static', filename='js/code-editor.bundle.js') }}"></script>
-<script defer src="{{ url_for('static', filename='js/learn.js', v='sidebars-scroll-1') }}"></script>
+<script defer src="{{ url_for('static', filename='js/learn.js', v='grade-demo-fix-1') }}"></script>
 {% endblock %}

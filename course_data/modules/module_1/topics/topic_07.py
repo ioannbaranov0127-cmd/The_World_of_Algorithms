@@ -33,7 +33,7 @@ TOPIC: dict = {
                     'input() останавливает программу и читает одну строку текста. Результат — '
                     'всегда строка (str), даже если пользователь набрал цифры.'
                 ),
-                'code': 'name = input("Ваше имя: ")\nprint("Привет,", name)',
+                'code': 'name = input("Ваше имя: ")  # Тёма\nprint("Привет,", name)  # Привет, Тёма',
             },
             {
                 'title': 'Строка и число — разные типы',
@@ -41,7 +41,7 @@ TOPIC: dict = {
                     '"100" + "50" склеит строки в "10050". Чтобы сложить числа, нужно преобразование. '
                     'int("100") даёт число 100.'
                 ),
-                'code': 'text = "150"\ngrams = int(text)\nprint(grams + 50)',
+                'code': 'text = "150"\ngrams = int(text)\nprint(grams + 50)  # 200',
             },
             {
                 'title': 'int(input()) и float(input())',
@@ -61,10 +61,10 @@ TOPIC: dict = {
                     'product остаётся строкой, а grams нужно превратить в число через int(), потому что позже мы будем считать формулу.'
                 ),
                 'code': (
-                    'print("Калькулятор калорий")\n'
-                    'product = input("Продукт: ")\n'
-                    'grams = int(input("Граммы: "))\n'
-                    'print("Вы ввели:", product, grams)'
+                    'print("Калькулятор калорий")  # Калькулятор калорий\n'
+                    'product = input("Продукт: ")  # яблоко\n'
+                    'grams = int(input("Граммы: "))  # 150\n'
+                    'print("Вы ввели:", product, grams)  # Вы ввели: яблоко 150'
                 ),
             },
             {
@@ -203,11 +203,12 @@ TOPIC: dict = {
             'kind': 'code_input',
             'category': 'practice',
             'type': 'code',
-            'text': 'Сохраните в переменную name строку «Аня» и выведите: Привет, Аня!',
-            'hint': 'name = "Аня"\nprint("Привет,", name + "!")',
+            'text': 'Спросите у пользователя продукт через input("Продукт: ") и выведите: Вы выбрали: <продукт>.',
+            'hint': 'product = input("Продукт: ")\nprint("Вы выбрали:", product)',
             'xp': 12,
-            'expected': 'Привет, Аня!',
-            'starter_code': '# имя пользователя\n',
+            'expected': 'Вы выбрали: яблоко',
+            'starter_code': 'product = input("Продукт: ")\n# выведите выбранный продукт\n',
+            'stdin': 'яблоко\n',
         },
         {
             'id': 32,
@@ -251,6 +252,42 @@ TOPIC: dict = {
                 {'key': 'c', 'label': 'int'},
             ],
             'correct': 'a',
+        },
+        {
+            'id': 206,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'Спросите граммы через input("Граммы: "), преобразуйте в int и выведите число граммов.',
+            'hint': 'grams = int(input("Граммы: "))\nprint(grams)',
+            'xp': 14,
+            'expected': '200',
+            'starter_code': '# спросите граммы и преобразуйте в число\n',
+            'stdin': '200\n',
+        },
+        {
+            'id': 207,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'Спросите продукт и граммы. Выведите две строки: «Продукт: ...» и «Граммы: ...».',
+            'hint': 'product = input("Продукт: ")\ngrams = int(input("Граммы: "))',
+            'xp': 16,
+            'expected': 'Продукт: банан\nГраммы: 150',
+            'starter_code': '# product и grams через input\n',
+            'stdin': 'банан\n150\n',
+        },
+        {
+            'id': 208,
+            'kind': 'fix_error',
+            'category': 'trainer',
+            'type': 'code',
+            'text': 'Исправьте код: граммы должны быть числом, чтобы дальше их можно было использовать в формуле.',
+            'hint': 'Нужен int(input(...)).',
+            'xp': 14,
+            'expected': '250',
+            'starter_code': 'grams = input("Граммы: ")\nprint(grams + 0)\n',
+            'stdin': '250\n',
         },
         STAGE_05,
     ],

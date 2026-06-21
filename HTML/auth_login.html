@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Вход — Мир алгоритмов{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <div class="auth-card card card--elevated">
+        <h1 class="auth-card__title">Вход</h1>
+        <p class="auth-card__lead">Прогресс сохраняется в вашем аккаунте.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <ul class="auth-flashes">
+            {% for category, message in messages %}
+            <li class="auth-flashes__item auth-flashes__item--{{ category }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        {% if errors %}
+        <ul class="auth-errors">
+            {% for err in errors %}
+            <li>{{ err }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form class="auth-form" method="post" action="{{ url_for('auth.login', next=next_url) }}">
+            <input type="hidden" name="next" value="{{ next_url }}">
+            <label class="auth-field">
+                <span class="auth-field__label">Email</span>
+                <input class="auth-field__input" type="email" name="email" value="{{ email }}" required autocomplete="username">
+            </label>
+            <label class="auth-field">
+                <span class="auth-field__label">Пароль</span>
+                <input class="auth-field__input" type="password" name="password" required autocomplete="current-password">
+            </label>
+            <button class="btn btn-primary auth-form__submit" type="submit">Войти</button>
+        </form>
+
+        <p class="auth-card__footer">
+            Нет аккаунта?
+            <a href="{{ url_for('auth.register', next=next_url) }}">Зарегистрироваться</a>
+        </p>
+        <p class="auth-card__footer">
+            <a href="{{ url_for('home') }}">← На главную</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

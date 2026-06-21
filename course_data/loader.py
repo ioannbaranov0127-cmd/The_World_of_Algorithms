@@ -35,7 +35,7 @@ def _module_2() -> dict:
         'icon': '📋',
         'icon_file': 'Иконка_модуль_2_1.svg',
         'description': (
-            f'Развитие «{COURSE["project_name"]}» после версии 1.0: for, списки, словари '
+            f'Развитие «{COURSE["project_name"]}» после версии 1.0: списки, цикл for, словари '
             f'и функции для версии 2.0.'
         ),
         'topics': topics,
@@ -56,4 +56,11 @@ TOTAL_TASKS_COUNT = sum(len(LESSONS[m]['tasks']) for m in LESSONS if not LESSONS
 TASK_BY_ID: dict[int, dict] = {}
 for _mod in LESSONS.values():
     for _t in _mod['tasks']:
-        TASK_BY_ID[_t['id']] = _t
+        tid = _t['id']
+        if tid in TASK_BY_ID:
+            prev = TASK_BY_ID[tid]
+            raise ValueError(
+                f'Дублирующийся id задания {tid}: '
+                f'«{prev.get("text", "")[:40]}…» и «{_t.get("text", "")[:40]}…»'
+            )
+        TASK_BY_ID[tid] = _t

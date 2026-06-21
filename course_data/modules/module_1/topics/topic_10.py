@@ -54,9 +54,9 @@ TOPIC: dict = {
                         ),
                         'code': (
                             'total = 450\n'
-                            'print(total == 500)\n'
-                            'print(total < 500)\n'
-                            'print(total >= 400)'
+                            'print(total == 500)  # False\n'
+                            'print(total < 500)   # True\n'
+                            'print(total >= 400)  # True'
                         ),
                     },
                     {
@@ -70,7 +70,7 @@ TOPIC: dict = {
                             'if num == 1:\n'
                             '    print("Яблоко")\n'
                             'elif num == 2:\n'
-                            '    print("Банан")\n'
+                            '    print("Банан")  # Банан\n'
                             'else:\n'
                             '    print("Другой выбор")'
                         ),
@@ -83,8 +83,8 @@ TOPIC: dict = {
                         ),
                         'code': (
                             'num = 3\n'
-                            'if num >= 1 and num <= 5:\n'
-                            '    print("Продукт есть в меню")'
+                            'if num >= 1 and num <= 5:  # 3 попадает в отрезок 1…5 → True\n'
+                            '    print("Продукт есть в меню")  # Продукт есть в меню'
                         ),
                     },
                     {
@@ -98,7 +98,7 @@ TOPIC: dict = {
                             'total = 0\n'
                             'calories = 78.0\n'
                             'total = total + calories\n'
-                            'print("Всего:", total, "ккал")'
+                            'print("Всего:", total, "ккал")  # Всего: 78.0 ккал'
                         ),
                     },
                     {
@@ -191,18 +191,47 @@ TOPIC: dict = {
         },
         {
             'id': 53,
-            'kind': 'quiz',
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'num = 3. Если num != 0, выведите «Продолжаем», иначе «Выход».',
+            'hint': 'Используйте сравнение !=.',
+            'xp': 14,
+            'expected': 'Продолжаем',
+            'starter_code': 'num = 3\n',
+        },
+        {
+            'id': 217,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'total = 0, calories = 104.0. Прибавьте calories к total и выведите «Всего: 104.0 ккал».',
+            'hint': 'total = total + calories',
+            'xp': 14,
+            'expected': 'Всего: 104.0 ккал',
+            'starter_code': 'total = 0\ncalories = 104.0\n',
+        },
+        {
+            'id': 218,
+            'kind': 'code_input',
+            'category': 'practice',
+            'type': 'code',
+            'text': 'total = 300, calories = 89.0. Обновите общий итог и выведите только число total.',
+            'hint': 'После прибавления должно получиться 389.0.',
+            'xp': 14,
+            'expected': '389.0',
+            'starter_code': 'total = 300\ncalories = 89.0\n',
+        },
+        {
+            'id': 219,
+            'kind': 'fix_error',
             'category': 'trainer',
-            'type': 'quiz',
-            'text': 'Что вернёт выражение num != 0, если num = 3?',
-            'hint': '3 не равно 0, значит выражение истинно.',
-            'xp': 10,
-            'options': [
-                {'key': 'a', 'label': 'True'},
-                {'key': 'b', 'label': 'False'},
-                {'key': 'c', 'label': '3'},
-            ],
-            'correct': 'a',
+            'type': 'code',
+            'text': 'Исправьте сравнение: при total = 1200 программа должна вывести «Итог есть».',
+            'hint': 'Нужно сравнение total > 0, а не присваивание.',
+            'xp': 14,
+            'expected': 'Итог есть',
+            'starter_code': 'total = 1200\nif total = 0:\n    print("Итога нет")\nelse:\n    print("Итог есть")\n',
         },
         STAGE_09,
     ],

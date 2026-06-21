@@ -22,6 +22,13 @@
 
     var COURSE_GRADE_DEMO_KEY = 'learn-course-grade-demo-step-count';
 
+    (function migrateCourseGradeDemoStorage() {
+        try {
+            global.localStorage.removeItem(COURSE_GRADE_DEMO_KEY);
+            global.localStorage.removeItem('learn-course-grade-demo-percent');
+        } catch (e) {}
+    })();
+
     function readCourseGradeDemoConfig() {
         var el = document.getElementById('course-grade-demo-config');
         if (!el) return null;
@@ -34,7 +41,7 @@
 
     function readCourseGradeDemoStepCount(config) {
         try {
-            var raw = localStorage.getItem(COURSE_GRADE_DEMO_KEY);
+            var raw = global.sessionStorage.getItem(COURSE_GRADE_DEMO_KEY);
             if (raw === null || raw === '') return null;
             var steps = (config && config.steps) || [];
             var value = Math.round(Number(raw) || 0);
@@ -57,44 +64,40 @@
         var limit = Math.max(0, Math.min(steps.length, Math.round(Number(stepCount) || 0)));
         var moduleDone = {};
         var moduleTotal = {};
-        var topicDone = {};
-        var topicTotal = {};
         var projectStagesByModule = {};
+        var completedTaskIds = {};
         var taskDone = 0;
 
         steps.forEach(function (step) {
             var key = String(step.module || '');
             moduleTotal[key] = (moduleTotal[key] || 0) + 1;
-            if (step.topic != null) {
-                var topicKey = key + ':' + String(step.topic);
-                topicTotal[topicKey] = (topicTotal[topicKey] || 0) + 1;
-            }
         });
 
         steps.slice(0, limit).forEach(function (step) {
-            var key = String(step.module || '');
-            moduleDone[key] = (moduleDone[key] || 0) + 1;
-            if (step.topic != null) {
-                var topicKey = key + ':' + String(step.topic);
-                topicDone[topicKey] = (topicDone[topicKey] || 0) + 1;
-            }
+            var moduleKey = String(step.module || '');
+            moduleDone[moduleKey] = (moduleDone[moduleKey] || 0) + 1;
+            if (step.taskId != null) completedTaskIds[String(step.taskId)] = true;
             if (step.isProject && step.projectStage != null) {
-                if (!projectStagesByModule[key]) projectStagesByModule[key] = {};
-                projectStagesByModule[key][String(step.projectStage)] = true;
+                if (!projectStagesByModule[moduleKey]) projectStagesByModule[moduleKey] = {};
+                projectStagesByModule[moduleKey][String(step.projectStage)] = true;
             } else {
                 taskDone += 1;
             }
         });
 
         var percent = 0;
-        Object.keys((config && config.projectWeights) || {}).forEach(function (key) {
-            var total = Number((config.projectStageTotals || {})[key]) || 0;
-            var done = Object.keys(projectStagesByModule[key] || {}).length;
-            if (total) percent += Math.floor(done * Number(config.projectWeights[key] || 0) / total);
+        Object.keys((config && config.projectWeights) || {}).forEach(function (moduleKey) {
+            var stageTotal = Number((config.projectStageTotals || {})[moduleKey]) || 0;
+            var stageDone = Object.keys(projectStagesByModule[moduleKey] || {}).length;
+            if (stageTotal) {
+                percent += Math.floor(stageDone * Number(config.projectWeights[moduleKey] || 0) / stageTotal);
+            }
         });
 
         var taskTotal = Number(config && config.taskTotal) || 0;
-        if (taskTotal) percent += Math.floor(taskDone * Number(config.taskWeight || 0) / taskTotal);
+        if (taskTotal) {
+            percent += Math.floor(taskDone * Number(config.taskWeight || 0) / taskTotal);
+        }
         percent = Math.max(0, Math.min(100, percent));
 
         var grade = courseGradeLabel(percent);
@@ -106,9 +109,8 @@
             state: grade.state,
             moduleDone: moduleDone,
             moduleTotal: moduleTotal,
-            topicDone: topicDone,
-            topicTotal: topicTotal,
-            projectStagesByModule: projectStagesByModule
+            completedTaskIds: completedTaskIds,
+            projectStagesByModule: projectStagesByModule,
         };
     }
 
@@ -116,8 +118,27 @@
         if (el) el.style.width = percent + '%';
     }
 
+    function isDemoTopicCompleted(config, meta, moduleId, topicNum) {
+        var steps = (config && config.steps) || [];
+        var required = steps.filter(function (step) {
+            return step.module === moduleId && step.topic === topicNum;
+        });
+        if (!required.length) return false;
+        var completed = meta.completedTaskIds || {};
+        return required.every(function (step) {
+            return completed[String(step.taskId)];
+        });
+    }
+
+    function isDemoProjectCompleted(config, meta, moduleId) {
+        var total = Number((config.projectStageTotals || {})[String(moduleId)]) || 0;
+        if (!total) return false;
+        var done = Object.keys(meta.projectStagesByModule[String(moduleId)] || {}).length;
+        return done >= total;
+    }
+
     function applyHomeCourseGradeDemo() {
-        if (!document.body.classList.contains('page-home')) return;
+        if (!document.body.classList.contains('page-home--admin')) return;
         var config = readCourseGradeDemoConfig();
         if (!config) return;
         var stored = readCourseGradeDemoStepCount(config);
@@ -131,6 +152,8 @@
         if (progressValue) progressValue.textContent = meta.stepCount + ' / ' + meta.stepsTotal + ' заданий';
         var progressHint = document.querySelector('[data-home-progress-hint]');
         if (progressHint) progressHint.textContent = overallPct + '% курса пройдено';
+        var progressBar = document.querySelector('[data-home-progress-card] .duo-progress');
+        if (progressBar) progressBar.setAttribute('aria-valuenow', String(overallPct));
 
         var gradeCard = document.querySelector('[data-home-grade-card]');
         if (gradeCard) {
@@ -147,6 +170,8 @@
         setWidth(document.querySelector('[data-home-grade-fill]'), meta.percent);
         var gradeHint = document.querySelector('[data-home-grade-hint]');
         if (gradeHint) gradeHint.textContent = meta.percent + '% до итоговой оценки';
+        var gradeBar = document.querySelector('[data-home-grade-card] .duo-progress');
+        if (gradeBar) gradeBar.setAttribute('aria-valuenow', String(meta.percent));
 
         document.querySelectorAll('[data-home-module]').forEach(function (tile) {
             var key = String(tile.getAttribute('data-home-module') || '');
@@ -158,27 +183,26 @@
             if (pctEl) pctEl.textContent = pct + '%';
         });
 
+        var unlockedCount = 0;
         document.querySelectorAll('[data-ach-card]').forEach(function (card) {
+            var unlocked = false;
             var minCompleted = card.getAttribute('data-ach-min-completed');
             var minFraction = card.getAttribute('data-ach-min-fraction');
             var topicModule = card.getAttribute('data-ach-topic-module');
             var topicNum = card.getAttribute('data-ach-topic-num');
             var projectModule = card.getAttribute('data-ach-project-module');
-            var unlocked = false;
+
             if (minCompleted !== null) {
                 unlocked = meta.stepCount >= Number(minCompleted);
             } else if (minFraction !== null) {
                 unlocked = meta.stepsTotal > 0 && meta.stepCount / meta.stepsTotal >= Number(minFraction) - 1e-9;
             } else if (topicModule !== null && topicNum !== null) {
-                var topicKey = String(topicModule) + ':' + String(topicNum);
-                var topicTotal = meta.topicTotal[topicKey] || 0;
-                unlocked = topicTotal > 0 && (meta.topicDone[topicKey] || 0) >= topicTotal;
+                unlocked = isDemoTopicCompleted(config, meta, Number(topicModule), Number(topicNum));
             } else if (projectModule !== null) {
-                var projectKey = String(projectModule);
-                var projectTotal = Number((config.projectStageTotals || {})[projectKey]) || 0;
-                var projectDone = Object.keys(meta.projectStagesByModule[projectKey] || {}).length;
-                unlocked = projectTotal > 0 && projectDone >= projectTotal;
+                unlocked = isDemoProjectCompleted(config, meta, Number(projectModule));
             }
+
+            if (unlocked) unlockedCount += 1;
             card.classList.toggle('ach-card--locked', !unlocked);
             var badge = card.querySelector('[data-ach-badge]');
             if (badge) {
@@ -186,6 +210,12 @@
                 badge.classList.toggle('ach-card__badge--muted', !unlocked);
             }
         });
+
+        var achSummary = document.querySelector('[data-home-ach-summary]');
+        if (achSummary) {
+            var totalCards = document.querySelectorAll('[data-ach-card]').length;
+            achSummary.textContent = unlockedCount + ' из ' + totalCards + ' получено';
+        }
     }
 
     function initLearnShellDrawers() {
@@ -298,13 +328,14 @@
         );
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function () {
-            initLearnShellDrawers();
-            applyHomeCourseGradeDemo();
-        });
-    } else {
+    function initPageUi() {
         initLearnShellDrawers();
         applyHomeCourseGradeDemo();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPageUi);
+    } else {
+        initPageUi();
     }
 })(window);

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — Мир алгоритмов{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <div class="auth-card card card--elevated">
+        <h1 class="auth-card__title">Регистрация</h1>
+        <p class="auth-card__lead">Создайте аккаунт, чтобы сохранять прогресс и оценку.</p>
+
+        {% if errors %}
+        <ul class="auth-errors">
+            {% for err in errors %}
+            <li>{{ err }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form class="auth-form" method="post" action="{{ url_for('auth.register', next=request.args.get('next')) }}">
+            <label class="auth-field">
+                <span class="auth-field__label">Имя</span>
+                <input class="auth-field__input" type="text" name="name" value="{{ name }}" required autocomplete="name">
+            </label>
+            <label class="auth-field">
+                <span class="auth-field__label">Email</span>
+                <input class="auth-field__input" type="email" name="email" value="{{ email }}" required autocomplete="email">
+            </label>
+            <label class="auth-field">
+                <span class="auth-field__label">Пароль</span>
+                <input class="auth-field__input" type="password" name="password" required autocomplete="new-password" minlength="6">
+            </label>
+            <label class="auth-field">
+                <span class="auth-field__label">Повторите пароль</span>
+                <input class="auth-field__input" type="password" name="password2" required autocomplete="new-password" minlength="6">
+            </label>
+            <button class="btn btn-primary auth-form__submit" type="submit">Создать аккаунт</button>
+        </form>
+
+        <p class="auth-card__footer">
+            Уже есть аккаунт?
+            <a href="{{ url_for('auth.login', next=request.args.get('next')) }}">Войти</a>
+        </p>
+        <p class="auth-card__footer">
+            <a href="{{ url_for('home') }}">← На главную</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% macro site_header(active='home', has_progress=false, auth_user=none) %}
+<header class="home-header">
+    <div class="home-header__inner">
+        <a class="home-brand" href="{{ url_for('home') }}">
+            <span class="home-brand__mark">Py</span>
+            <span class="home-brand__text home-brand__text--full">Мир алгоритмов: проектируем на Python</span>
+            <span class="home-brand__text home-brand__text--short">Мир алгоритмов</span>
+        </a>
+        <div class="home-header__actions">
+            {% if auth_user %}
+            {% if auth_user.is_admin %}
+            <a href="{{ url_for('admin.index') }}"
+                class="btn btn-secondary btn-header{% if active == 'admin' %} btn-header--active{% endif %}">Админка</a>
+            {% else %}
+            <a href="{{ url_for('profile') }}"
+                class="btn btn-secondary btn-header{% if active == 'profile' %} btn-header--active{% endif %}">Профиль</a>
+            {% endif %}
+            <span class="home-header__user">{{ auth_user.name }}</span>
+            <form class="home-header__logout" method="post" action="{{ url_for('auth.logout') }}">
+                <button type="submit" class="btn btn-secondary btn-header">Выйти</button>
+            </form>
+            {% if auth_user.is_admin %}
+            <a href="{{ url_for('learn') }}" class="btn btn-primary btn-header">Открыть курс</a>
+            {% else %}
+            <a href="{{ url_for('learn') }}" class="btn btn-primary btn-header">
+                {% if has_progress %}Продолжить{% else %}Начать{% endif %}
+            </a>
+            {% endif %}
+            {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-header">Вход</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-header">Регистрация</a>
+            {% endif %}
+        </div>
+    </div>
+</header>
+{% endmacro %}
