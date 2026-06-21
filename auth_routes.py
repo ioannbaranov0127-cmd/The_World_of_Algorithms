@@ -25,10 +25,16 @@ def _safe_next_url(raw: str | None) -> str:
     return url_for('learn')
 
 
+def _post_login_url() -> str:
+    if current_user.is_authenticated and current_user.is_admin:
+        return url_for('admin.index')
+    return url_for('learn')
+
+
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('learn'))
+        return redirect(_post_login_url())
 
     errors: list[str] = []
     name = ''
@@ -61,7 +67,10 @@ def register():
             ensure_progress_row(user.id)
             login_user(user, remember=True)
             flash('Аккаунт создан. Добро пожаловать!', 'success')
-            return redirect(_safe_next_url(request.args.get('next')))
+            next_raw = request.args.get('next')
+            if next_raw:
+                return redirect(_safe_next_url(next_raw))
+            return redirect(_post_login_url())
 
     return render_template('auth_register.html', errors=errors, name=name, email=email)
 
@@ -69,7 +78,7 @@ def register():
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('learn'))
+        return redirect(_post_login_url())
 
     errors: list[str] = []
     email = ''
@@ -86,7 +95,7 @@ def login():
             user.touch_seen()
             db.session.commit()
             flash('Вы вошли в аккаунт.', 'success')
-            return redirect(_safe_next_url(request.form.get('next') or request.args.get('next')))
+            return redirect(_safe_next_url(request.form.get('next') or request.args.get('next') or None) if (request.form.get('next') or request.args.get('next')) else _post_login_url())
 
     return render_template(
         'auth_login.html',

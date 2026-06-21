@@ -25,6 +25,8 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ADMIN_EMAIL = (os.environ.get('ADMIN_EMAIL') or '').strip().lower()
+    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or os.environ.get('ADMIN_INITIAL_PASSWORD') or ''
+    ADMIN_NAME = (os.environ.get('ADMIN_NAME') or 'Преподаватель').strip() or 'Преподаватель'
 
     ENFORCE_PROJECT_STAGE_PREREQUISITE = True
     ENFORCE_M1_BEFORE_M2 = True

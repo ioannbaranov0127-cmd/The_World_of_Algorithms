@@ -1300,6 +1300,9 @@ def init_database() -> None:
     os.makedirs(instance_dir, exist_ok=True)
     with app.app_context():
         db.create_all()
+        from bootstrap_service import ensure_admin_user
+
+        ensure_admin_user()
 
 
 init_database()
