@@ -41,10 +41,10 @@ class Config:
         if uri.startswith('postgres://'):
             app.config['SQLALCHEMY_DATABASE_URI'] = uri.replace('postgres://', 'postgresql://', 1)
 
-        if is_prod and app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+        if os.environ.get('RENDER') and app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
             raise RuntimeError(
-                'В production нужен DATABASE_URL (PostgreSQL). '
-                'SQLite на Render стирается при каждом перезапуске — аккаунты и прогресс пропадут.'
+                'На Render нужен DATABASE_URL (PostgreSQL). '
+                'SQLite стирается при каждом перезапуске — аккаунты и прогресс пропадут.'
             )
 
         if is_prod and not app.config['SECRET_KEY']:

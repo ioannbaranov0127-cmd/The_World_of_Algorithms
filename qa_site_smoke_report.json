@@ -1,0 +1,17 @@
+{
+  "issues": [],
+  "checks": {
+    "guest /": 200,
+    "guest /login": 200,
+    "guest /register": 200,
+    "guest /calorie-calculator": 200,
+    "guest /health": 200,
+    "guest /learn": 302,
+    "guest /profile": 302,
+    "guest /admin": 302,
+    "guest /api/session": 401,
+    "student /learn": 200,
+    "student /profile": 200
+  },
+  "all_ok": true
+}
