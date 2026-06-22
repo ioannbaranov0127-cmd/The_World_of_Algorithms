@@ -25,8 +25,6 @@ class Config:
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     ADMIN_EMAIL = (os.environ.get('ADMIN_EMAIL') or '').strip().lower()
-    ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD') or os.environ.get('ADMIN_INITIAL_PASSWORD') or ''
-    ADMIN_NAME = (os.environ.get('ADMIN_NAME') or 'Преподаватель').strip() or 'Преподаватель'
 
     ENFORCE_PROJECT_STAGE_PREREQUISITE = True
     ENFORCE_M1_BEFORE_M2 = True
@@ -42,6 +40,12 @@ class Config:
         uri = app.config['SQLALCHEMY_DATABASE_URI']
         if uri.startswith('postgres://'):
             app.config['SQLALCHEMY_DATABASE_URI'] = uri.replace('postgres://', 'postgresql://', 1)
+
+        if is_prod and app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+            raise RuntimeError(
+                'В production нужен DATABASE_URL (PostgreSQL). '
+                'SQLite на Render стирается при каждом перезапуске — аккаунты и прогресс пропадут.'
+            )
 
         if is_prod and not app.config['SECRET_KEY']:
             raise RuntimeError('FLASK_SECRET_KEY is required in production')
